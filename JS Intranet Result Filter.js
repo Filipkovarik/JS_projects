@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Javascript Intranet Result Filter
-// @version      1.1
+// @version      1.1.01
 // @description  A filter for our school's schedule change page 
 // @author       Filipkovarik a.k.a. Filipkoss2329
 // @match        http://intranet.gjs.cz/stranky/suplovani.asp
@@ -57,7 +57,7 @@ var styles=
 $("head").append($(document.createElement("style")).html(styles.join("\n")))
 }
 PageObjects.inputs=function(){
-$("a[href='suplovani1.asp']")[0].outerHTML+='<div id=filtering><br><br><input type=button id=date-jump-button-1 value=Dnes><input type=button id=date-jump-button-2 value=Zítra><input type=button id=date-jump-button-3 value=Včera><input type=button id=date-jump-button-4 value="Nejbližší suplování"><br><input type=text id=date-jump-input name=filter-input><input type=button id=date-jump-button><font size=2>(den.měsíc, den.měsíc.rok)</font><br><input type=text id=filter-input name=filter-input><input type=button id=filter-button value=Filtrovat> <font size=2>(<s>část jména<s>, třída)</font><br><font size=2>Nechte prázdné pro obnovení všech výsledků</font></div>';
+$("a[href='suplovani1.asp']")[0].outerHTML+='<div id=filtering><br><br><input type=button id=date-jump-button-1 value=Dnes><input type=button id=date-jump-button-2 value=Zítra><input type=button id=date-jump-button-3 value=Včera><input type=button id=date-jump-button-4 value="Nejbližší suplování"><br><input type=text id=date-jump-input name=filter-input><input type=button id=date-jump-button><font size=2>(den.měsíc, den.měsíc.rok)</font><br><input type=text id=filter-input name=filter-input><input type=button id=filter-button value=Filtrovat> <font size=2>(<s>část jména</s>, třída)</font><br><font size=2>Nechte prázdné pro obnovení všech výsledků</font></div>';
 $("#date-jump-button").val("Jít na datum").click(PageObjects.jumpToDate);
 $("#filter-button").click(PageObjects.filter);
 if(localStorage&&localStorage.getItem("lastFilter")){$("#filter-input").val(localStorage.getItem("lastFilter"));}
