@@ -1,8 +1,8 @@
 var LangCon;
 
-(function(){
-let DOM = document.getElementById("LangCon_glyphFrame");
-let LSKey = "glyphs";
+(function($){
+let DOM = $("#LangCon_glyphFrame");
+let LSkey = "glyphs";
  
 class Facepalm extends Error {}	
 N=_=>Object.create(null);
@@ -74,7 +74,7 @@ let VC = LC.VerticalCombine = class VerticalCombine extends LC.internal.Position
 	}
 
 	toHTML () {
-		return '<div class="vertical-combine">$subglyphs</div>'.replace("$subglyphs",this.subglyphs.map([g,r]=>RS(g,r)));
+		return '<div class="vertical-combine">$subglyphs</div>'.replace("$subglyphs",this.subglyphs.map(([g,r])=>RS(g,r)));
 	}
 	
 	toDef(){
@@ -129,9 +129,12 @@ LC.draw = function(name){
    LC.DOM.innerHTML = LC.glyphs[name].toHTML(); 
 }
 
-})()
+})(jQuery)
 
-
+$(function(){
+	$("#LangCon_glyphFrame").resizable({containment:"#LangCon_container"});
+	$("#LangCon_container").controlgroup();
+});
 
 
 
