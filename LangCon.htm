@@ -1,13 +1,20 @@
 <html>
     <head>
+		<link rel="stylesheet" href="jquery-ui.min.css">
+		
         <style type="text/css">
             * {margin:0;}
+			
+			#LangCon_container {
+			
+			}
+			
            #LangCon_glyphFrame {
                 border: 1px outset rgba(220,220,220,0.4);
                 border-radius: 2px;
                 margin: 10px;
-                min-width: 20vw;
-                max-width: 90vw;
+                min-width: 30vw;
+                max-width: 50vw;
                 min-height: 20vh;
                 max-height: 50vh;
             }
@@ -32,11 +39,13 @@
             }
             
         </style>
+		<script type="text/javascript" src="jquery.js"></script>
+		<script type="text/javascript" src="jquery-ui.min.js"></script>
         <script src="LangCon.js"></script>
     </head>
     <body>
-        <div id="LangCon_glyphFrame"></div>
-        <input type=text id="defineBox" onblur="LangCon.assign(LC.parse(this.value))">
+        <div id="LangCon_container"><div id="LangCon_glyphFrame"><div class="glyph"></div></div><div></div></div>
+		<input type=text id="defineBox" onblur="LangCon.assign(LC.parse(this.value))">
         <input type=text id="displayBox" onblur="LangCon.draw(this.value)">
         <input type="button" value="No" onclick="">
         </body>

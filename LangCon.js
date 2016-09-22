@@ -16,7 +16,7 @@ LC.glyphs = localStorage.getItem(LSkey)||N();
 LC.glyphs.__$isGlyphList = true;
 LC.save = function(){localStorage.setItem(LSkey,LC.glyphs);}
 
-LC.assign = function(glyph){LC.glyphs[glyph.name]=glyph};
+LC.assign = function(glyph){LC.glyphs[glyph.name]=glyph; LC.save();};
 
 LC.parse = function(obj){
 if(obj.__$isGlyphList || obj instanceof Array) return obj.map(x=>LC.parse(x));
@@ -27,8 +27,9 @@ if(obj.__$isGlyphList || obj instanceof Array) return obj.map(x=>LC.parse(x));
 LC.Glyph = class Glyph {
 	constructor (name, src, subareas) { //[left, top, width, height] ~ [0 to 1, 0 to 1, 0 to 1, 0 to 1] (multiple of superglyph)
 		this.name = name;
-    		this.src = src;
-  		this.subareas = subareas; 
+    	this.src = src;
+  		this.subareas = subareas;
+		LC.assign(this);
 	}
 	
 	static fromDef (obj) {
@@ -43,12 +44,13 @@ LC.Glyph = class Glyph {
 		return {name: this.name, src: this.src, subareas: this.subareas, type: "Glyph"};
 	}
 
+}
+
 let RS = LC.internal.Resize = function Resize(glyph, left, top, width, height){   //relative to superglyph
 	    if(top == undefined) return '<div class="resize-flex-grow" style="flex-grow: $flex-grow">$glyph</div>'.replace("$flex-grow",left||1).replace("$glyph",glyph.toHTML());
 	    let s = (x=>(100*x).toFixed(0));
 	    return '<div class="resize" style="position:relative; width: $w%; height: $h%; left: $l%; top: $t%;">$g</div>'.replace("$w",s(width)).replace("$h",s(height)).replace("$l",s(left)).replace("$t",s(top)).replace("$g",glyph.toHTML());
 };
-
 
 let PC = LC.internal.PositionCombine = class PositionCombine extends LC.Glyph {
 	constructor (name, ...glyphs) { //name, [glyph(, ratio)] (,[glyph(, ratio)]) .IS //ratio (name instanceof Object){glyphs = LC.parse(name.glyphs); name = name.name;}s noflex-grois.;lyphs = glyghs;
@@ -56,11 +58,11 @@ let PC = LC.internal.PositionCombine = class PositionCombine extends LC.Glyph {
 	}
 	
 	static fromDef(obj) {
-		return new LC[obj.type](obj.name, ...(obj.glyphs.map(x=>LC.parse(x))));
+		return new LC[obj.type](obj.name, ...(obj.glyphs.map(x=>LC.glyphs[x])));
 	}
 	
 	toDef (id){
-		return {name: id + this.name, glyphs: this.glyphs.map(x=>x.toDef())}
+		return {name: id + this.name, glyphs: this.glyphs.map(x=>x.name)}
 	}
 }
 
@@ -68,6 +70,7 @@ let VC = LC.VerticalCombine = class VerticalCombine extends LC.internal.Position
 	constructor() {
 	    this.super.apply(this,arguments);
 	    this.name = "V"+this.name;
+		LC.assign(this);
 	}
 
 	toHTML () {
@@ -87,20 +90,38 @@ let CC = LC.Combine = class CustomCombine extends LC.Glyph {
 		this.base = base;
 		this.subglyphs = subglyphs;
 		if(this.subglyphs.length > this.base.subareas.length) throw new Facepalm();
+		LC.assign(this);
 	}
 	
 	static fromDef (obj){
-		return new this(obj.name,LC.parse(obj.base), ...(obj.subglyphs.map(x=>LC.parse(x))))
+		return new this(obj.name,LC.parse(obj.base), ...(obj.subglyphs.map(x=>LC.glyphs[x])))
 	}
 	
 	toDef(){
-		return {type: "Combine", name: this.name, subglyphs: this.subglyphs.map(x=>x.toDef()), base: this.base.toDef()};
+		return {type: "Combine", name: this.name, subglyphs: this.subglyphs.map(x=>x?x.name:""), base: this.base.name};
 	}
 	    
 	toHTML(){
 		this.subglyphs.map((g,i)=>g?RS(g, ...this.subareas[i]):"")
 	}
 }
+
+let Cat = LC.Category = class Category {
+	constructor (name,members){
+		this.name = name;
+		this.members = members||[];
+		LC.assign(this);
+	}
+	
+	toDef (){
+		return {name: this.name, type:"Category", members: this.members.map(x=>x.name)};
+	}
+	
+	static fromDef(obj) {
+		return new this(obj.name, obj.members.map(x=>LC.glyphs[x]));
+	}
+}
+
 LC.DOM = DOM;
 
 
