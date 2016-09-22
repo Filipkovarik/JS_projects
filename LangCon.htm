@@ -1,0 +1,43 @@
+<html>
+    <head>
+        <style type="text/css">
+            * {margin:0;}
+           #LangCon_glyphFrame {
+                border: 1px outset rgba(220,220,220,0.4);
+                border-radius: 2px;
+                margin: 10px;
+                min-width: 20vw;
+                max-width: 90vw;
+                min-height: 20vh;
+                max-height: 50vh;
+            }
+            
+            #LangCon_glyphFrame, #LangCon_glyphFrame * {
+                display: flex;
+            }
+            
+             .alt {
+                border: 1px dashed blue;
+                justify-content: center;
+                align-items: center;
+            }
+            
+            .glyph {
+                width: 100%;
+                height: 100%;
+            }
+            
+            .vertical-combine {
+                flex-direction: column;
+            }
+            
+        </style>
+        <script src="LangCon.js"></script>
+    </head>
+    <body>
+        <div id="LangCon_glyphFrame"></div>
+        <input type=text id="defineBox" onblur="LangCon.assign(LC.parse(this.value))">
+        <input type=text id="displayBox" onblur="LangCon.draw(this.value)">
+        <input type="button" value="No" onclick="">
+        </body>
+</html>
