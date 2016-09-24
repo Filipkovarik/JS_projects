@@ -140,6 +140,35 @@ LC.NEW.Glyph = function(){
 
 $(function(){
 	
+	class SlideSnap {
+	constructor (name,values,ease,root,max,oom){
+			SlideSnap[name] = this;
+			this.values = values;
+			this.max = max;
+			this.ease = ease;
+			this.root = root;
+			this.oom = oom;
+			
+			let m = Math.max(...values);
+			this.positions = this.values.map(x=>this.norm(x/m));
+		}
+		
+		norm (s){
+			return this.ease(s+this.root)/this.max;
+		}
+		
+		snap (s){
+			s = s / (1 << this.oom);
+			let b = this.positions.findIndex(x => x >= s);
+			if (b == 0) return [this.positions[0], this.values[0]];
+			let ratio = this.positions[b]/(this.positions[b-1]+this.positions[b]);
+			if((s-this.positions[b-1])/(this.positions[b-1]-this.positions[b])<=ratio)--b;
+			return [this.positions[b]*(1<<this.oom), this.values[b]];
+		}
+	}
+	
+	new SlideSnap("percentSnap",[1,2,5,10,20,25],x=>Math.log(x),1,Math.E,8);
+	
 	$("#LangCon_glyphFrame").resizable({containment:"#LangCon_container"});
 	
 	$("#LangCon_menu_accordion").accordion({heightStyle: "fill"});
@@ -181,23 +210,21 @@ $(function(){
 			e.draggable("destroy").resizable("destroy").remove();
 	}).button();
 	
-	$("#LangCon_Glyph_subareas_snap_slider").slider({
-		min:1,
-		max:100,
+	/*$("#LangCon_Glyph_subareas_snap_slider").slider({
+		min:0,
+		max:1<<SlideSnap.percentSnap.oom,
 		create: function(){
-			$("#LangCon_Glyph_subareas_snap_slider_handle").text($(this).slider("value")+"%");
+			$("#LangCon_Glyph_subareas_snap_slider_handle").text(SlideSnap.percentSnap.values[0]+"%");
 		},
 		slide: function(event,ui){
-			let values = [1,2,3,5,10,20,25];
-			let slideEase = a=>Math.log(Math.log(a));
-			let normSlideEase = a=>slideEase()
-			let positions = values.map(x=>~~slideEase(x)/slideEase(Math.max(...values))*100);
-			let i = positions.findIndex(x=>x>=ui.value);
-			if()
-			$("#LangCon_Glyph_subareas_snap_slider_handle").text(values[i]+"%");
-			return !1;
+			let s = SlideSnap.percentSnap;
+			let p = s.snap(ui.value);
+			
+			$("#LangCon_Glyph_subareas_snap_slider_handle").text(p[1]+"%");
+			return true;
 		}
-	});
+	});*/
+	//CUS I GIV D F UP, selct mnu insted m8
 	
 	$("#LangCon_container").controlgroup();
 	$("#LangCon_menu").controlgroup();
