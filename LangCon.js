@@ -139,7 +139,7 @@ LC.NEW.Glyph = function(){
 })(jQuery)
 
 $(function(){
-		
+	
 	$("#LangCon_glyphFrame").resizable({containment:"#LangCon_container"});
 	
 	$("#LangCon_menu_accordion").accordion({heightStyle: "fill"});
@@ -163,14 +163,41 @@ $(function(){
 		return m == -1 ? arr[arr.length-1]+1 : arr[m-1];
 		}
 		let t = $(this).parent().parent().find(".dialog_glyphFrame");
+		let n = smex(t.children().map((_,x)=>+$(x).text()).get());
 		let s = $(document.createElement("div"))
 		.addClass("dialog_Glyph_subarea")
-		.keyup(function(e){if(e.key=="Delete") $(this).resizable("destroy").draggable("destroy").remove();})
-		.text(smex(t.children().map((_,x)=>+$(x).text()).get()))
+		.on("mousedown touchdown",function(){$(".dialog_Glyph_subareas_last").text($(this).attr("no"))})
+		.text(n)
+		.attr("no",n)
 		.appendTo(t)
 		.resizable({containment: t})
 		.draggable({containment: "parent"});
 	}).button();
+	
+	$("#dialog_Glyph_subareas_delete").click(function(){
+		let n = +$(this).find(".dialog_Glyph_subareas_last").text();
+		let e = $(".dialog_Glyph_subarea[no="+n+"]");
+		if (e.length)
+			e.draggable("destroy").resizable("destroy").remove();
+	}).button();
+	
+	$("#LangCon_Glyph_subareas_snap_slider").slider({
+		min:1,
+		max:100,
+		create: function(){
+			$("#LangCon_Glyph_subareas_snap_slider_handle").text($(this).slider("value")+"%");
+		},
+		slide: function(event,ui){
+			let values = [1,2,3,5,10,20,25];
+			let slideEase = a=>Math.log(Math.log(a));
+			let normSlideEase = a=>slideEase()
+			let positions = values.map(x=>~~slideEase(x)/slideEase(Math.max(...values))*100);
+			let i = positions.findIndex(x=>x>=ui.value);
+			if()
+			$("#LangCon_Glyph_subareas_snap_slider_handle").text(values[i]+"%");
+			return !1;
+		}
+	});
 	
 	$("#LangCon_container").controlgroup();
 	$("#LangCon_menu").controlgroup();
