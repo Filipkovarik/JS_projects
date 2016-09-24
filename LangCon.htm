@@ -10,6 +10,7 @@
 			}
 			
 			#LangCon_container {
+				display: inline-block;
 				width: 70vw;
 				height: 400px;
 				
@@ -26,7 +27,63 @@
             #LangCon_glyphFrame, #LangCon_glyphFrame * {
                 display: flex;
             }
+			
+			#LangCon_menu {
+				height: 300px;
+				border: 2px outset grey;
+				border-radius: 4px;
+				padding: 5px;
+				
+			
+			}
+			
+			#LangCon_menu_add_menu {
+				display: none;
+			}
+			
+			#LangCon_menu_add:hover #LangCon_menu_add_menu {
+				display: block;
+				position: absolute;
+			}
             
+			#LangCon_menu_add_button {
+				
+			}
+			
+			
+			.dialog_glyphFrame {
+				width: 300px;
+				height: 300px;
+				background: white;
+				border: 2px inset lightgray;
+				display: inline-block;
+				position: relative;
+			}
+			
+			#dialog_Glyph_GlyphImage {
+				width: 100%;
+				margin-top: 5px;
+			}
+			
+			#dialog_Glyph_subareas {
+				display: inline-block;
+				margin-bottom: 5px;
+				padding: 5px;
+			}
+			
+			.dialog_Glyph_subarea {
+				width: 50%;
+				height: 50%;
+				position: absolute;
+				top: 25%;
+				left: 25%;
+				border: 3px lightblue dashed;
+			}
+			
+			.dialog_Glyph_subarea:active {
+				border: 3px red dashed;
+			}
+			
              .alt {
                 border: 1px dashed blue;
                 justify-content: center;
@@ -41,17 +98,40 @@
             .vertical-combine {
                 flex-direction: column;
             }
-            
+			
+            dialog {display:block;}
         </style>
 		<script type="text/javascript" src="jquery.js"></script>
 		<script type="text/javascript" src="jquery-ui.min.js"></script>
+		<script src="jquery.ui.touch-punch.min.js"></script>
         <script src="LangCon.js"></script>
     </head>
     <body>
         <div id="LangCon_container"><div id="LangCon_glyphFrame"><div class="glyph"></div></div></div>
-		<br>
-		<input type=text id="defineBox" onblur="LangCon.assign(LC.parse(this.value))">
-        <input type=text id="displayBox" onblur="LangCon.draw(this.value)">
-        <input type="button" value="No" onclick="">
+		<div id="LangCon_menu">
+			<div id="LangCon_menu_add">
+				<button id="LangCon_menu_add_button" class="ui-button ui-widget ui-corner-all ui-button-icon-only"></button>
+				<ul id="LangCon_menu_add_menu">
+					<li><div name="Glyph">Glyph</div></li>
+					<li><div name="VerticalCombine">Vertical combination</div></li>
+					<li><div name="HorizontalCombine">Horizontal combination</div></li>
+					<li><div name="CustomCombine">Subarea insertion</div></li>
+					<li><div name="Category">Category</div></li>
+				</ul>
+				</div>
+				<ul id="LangCon_menu_accordion">
+				
+				</ul>
+			</div>
+		</div>
+		<dialog id="dialog_Glyph" title="Define new Glyph">
+			<div class="dialog_glyphFrame"></div>
+			<div id="dialog_Glyph_subareas">
+				<button id="dialog_Glyph_subareas_new">Add subarea</button>
+			</div>
+			<textarea id="dialog_Glyph_GlyphImage"></textarea>
+			<button id="dialog_Glyph_SVG_button">SVG</button>
+		</dialog>
+			
         </body>
 </html>

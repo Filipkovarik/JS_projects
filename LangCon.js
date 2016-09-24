@@ -2,6 +2,7 @@ var LangCon;
 
 (function($){
 let DOM = $("#LangCon_glyphFrame");
+let DOMMenu = $("#LangCon_menu_accordion");
 let LSkey = "glyphs";
  
 class Facepalm extends Error {}	
@@ -22,7 +23,6 @@ LC.parse = function(obj){
 if(obj.__$isGlyphList || obj instanceof Array) return obj.map(x=>LC.parse(x));
    return new LC[obj.type].fromDef(obj); 
 };
-
 
 LC.Glyph = class Glyph {
 	constructor (name, src, subareas) { //[left, top, width, height] ~ [0 to 1, 0 to 1, 0 to 1, 0 to 1] (multiple of superglyph)
@@ -129,11 +129,51 @@ LC.draw = function(name){
    LC.DOM.innerHTML = LC.glyphs[name].toHTML(); 
 }
 
+LC.NEW = N();
+
+LC.NEW.Glyph = function(){
+	$("#dialog_Glyph_GlyphImage").val("C:/Users/Filip/Desktop/Lang");
+	$("dialog#dialog_Glyph").dialog("open");
+}
+
 })(jQuery)
 
 $(function(){
+		
 	$("#LangCon_glyphFrame").resizable({containment:"#LangCon_container"});
+	
+	$("#LangCon_menu_accordion").accordion({heightStyle: "fill"});
+	$("#LangCon_menu_add_button").button({icon:"ui-icon-plus"});
+	$("#LangCon_menu_add_menu").menu().children().children().click(function(e){
+		LangCon.NEW[$(e.target).attr("name")]();
+	});
+	
+	$("dialog#dialog_Glyph").dialog({modal: true, resizable: false, autoOpen: false, width: "90vw"});
+	$("#dialog_Glyph_GlyphImage").keyup(function(){
+		let t = $(this);
+		let s = t.val();
+		s = s.indexOf("data:")==0?s.replace(/\r|\n/g,""):s.replace(/\\|\//g,"\\\\");
+		t.parent().find(".dialog_glyphFrame").css("background-image","url('"+s+"')");
+	})
+	$("#dialog_Glyph_SVG_button").click(function(){$("#dialog_Glyph_GlyphImage").val("data:image/svg+xml;utf-8,<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>")}).button();
+	$("#dialog_Glyph_subareas_new").click(function(){
+		let smex = function(arr){
+		arr[-1] = 0;
+		let m = arr.findIndex((x, i, a)=>x-arr[i-1]>1);
+		return m == -1 ? arr[arr.length-1]+1 : arr[m-1];
+		}
+		let t = $(this).parent().parent().find(".dialog_glyphFrame");
+		let s = $(document.createElement("div"))
+		.addClass("dialog_Glyph_subarea")
+		.keyup(function(e){if(e.key=="Delete") $(this).resizable("destroy").draggable("destroy").remove();})
+		.text(smex(t.children().map((_,x)=>+$(x).text()).get()))
+		.appendTo(t)
+		.resizable({containment: t})
+		.draggable({containment: "parent"});
+	}).button();
+	
 	$("#LangCon_container").controlgroup();
+	$("#LangCon_menu").controlgroup();
 });
 
 
