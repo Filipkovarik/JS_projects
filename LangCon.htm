@@ -62,7 +62,7 @@
 			
 			#dialog_Glyph_GlyphImage {
 				width: 100%;
-				margin-top: 5px;
+				margin: 10px;
 			}
 			
 			#dialog_Glyph_subareas {
@@ -113,6 +113,16 @@
             }
 			
             dialog {display:block;}
+			
+			.LangCon_dialog_glyph_grid {
+				display: none;
+				position: absolute;
+				
+			}
+			
+			#dialog_Glyph_create_button {
+				float: right;
+			}
         </style>
 		<script type="text/javascript" src="jquery.js"></script>
 		<script type="text/javascript" src="jquery-ui.min.js"></script>
@@ -138,17 +148,21 @@
 			</div>
 		</div>
 		<dialog id="dialog_Glyph" title="Define new Glyph">
+			
 			<div class="dialog_glyphFrame"></div>
 			<div id="dialog_Glyph_subareas">
+				<label for="name">Name your glyph:</label>
+				<input type=text name="name">
+				<br><br>
 				<button id="dialog_Glyph_subareas_new">Add subarea</button>
 				<button id="dialog_Glyph_subareas_delete">Delete subarea <span class="dialog_Glyph_subareas_last"></span></button> 
 				<br>
-				<label for="snap">Snap to grid of size:</label>
-				<div name="snap" id="LangCon_Glyph_subareas_snap_slider"><div id="LangCon_Glyph_subareas_snap_slider_handle" class="ui-slider-handle"></div></div>
 				
 			</div>
-			<textarea id="dialog_Glyph_GlyphImage"></textarea>
+			<label for="image_path">Enter image path or SVG definition:</label>
+			<textarea id="dialog_Glyph_GlyphImage" name="image_path"></textarea>
 			<button id="dialog_Glyph_SVG_button">SVG</button>
+			<button id="dialog_Glyph_create_button">Create</button>
 		</dialog>
 			
         </body>

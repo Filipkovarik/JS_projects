@@ -18,6 +18,7 @@ LC.glyphs.__$isGlyphList = true;
 LC.save = function(){localStorage.setItem(LSkey,LC.glyphs);}
 
 LC.assign = function(glyph){LC.glyphs[glyph.name]=glyph; LC.save();};
+LC.rename = function(name1,name2){let a = LC.glyphs[name1]; a.name = name2; delete LC[name1]; LC.assign(a);}
 
 LC.parse = function(obj){
 if(obj.__$isGlyphList || obj instanceof Array) return obj.map(x=>LC.parse(x));
@@ -140,35 +141,6 @@ LC.NEW.Glyph = function(){
 
 $(function(){
 	
-	class SlideSnap {
-	constructor (name,values,ease,root,max,oom){
-			SlideSnap[name] = this;
-			this.values = values;
-			this.max = max;
-			this.ease = ease;
-			this.root = root;
-			this.oom = oom;
-			
-			let m = Math.max(...values);
-			this.positions = this.values.map(x=>this.norm(x/m));
-		}
-		
-		norm (s){
-			return this.ease(s+this.root)/this.max;
-		}
-		
-		snap (s){
-			s = s / (1 << this.oom);
-			let b = this.positions.findIndex(x => x >= s);
-			if (b == 0) return [this.positions[0], this.values[0]];
-			let ratio = this.positions[b]/(this.positions[b-1]+this.positions[b]);
-			if((s-this.positions[b-1])/(this.positions[b-1]-this.positions[b])<=ratio)--b;
-			return [this.positions[b]*(1<<this.oom), this.values[b]];
-		}
-	}
-	
-	new SlideSnap("percentSnap",[1,2,5,10,20,25],x=>Math.log(x),1,Math.E,8);
-	
 	$("#LangCon_glyphFrame").resizable({containment:"#LangCon_container"});
 	
 	$("#LangCon_menu_accordion").accordion({heightStyle: "fill"});
@@ -187,20 +159,22 @@ $(function(){
 	$("#dialog_Glyph_SVG_button").click(function(){$("#dialog_Glyph_GlyphImage").val("data:image/svg+xml;utf-8,<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>")}).button();
 	$("#dialog_Glyph_subareas_new").click(function(){
 		let smex = function(arr){
-		arr[-1] = 0;
-		let m = arr.findIndex((x, i, a)=>x-arr[i-1]>1);
-		return m == -1 ? arr[arr.length-1]+1 : arr[m-1];
+			arr = arr.sort((x,y)=>x>y)
+			for (let i = 0; i < arr.length; i++){
+				if(i+1 != arr[i])return i+1;
+			}
+			return arr.length+1;
 		}
 		let t = $(this).parent().parent().find(".dialog_glyphFrame");
-		let n = smex(t.children().map((_,x)=>+$(x).text()).get());
+		let n = smex(t.children(".dialog_Glyph_subarea").map((_,x)=>+$(x).text()).get());
 		let s = $(document.createElement("div"))
 		.addClass("dialog_Glyph_subarea")
 		.on("mousedown touchdown",function(){$(".dialog_Glyph_subareas_last").text($(this).attr("no"))})
 		.text(n)
 		.attr("no",n)
 		.appendTo(t)
-		.resizable({containment: t})
-		.draggable({containment: "parent"});
+		.resizable({containment: t, grid:[15,15]})
+		.draggable({containment: "parent", grid:[15,15]});
 	}).button();
 	
 	$("#dialog_Glyph_subareas_delete").click(function(){
@@ -210,21 +184,16 @@ $(function(){
 			e.draggable("destroy").resizable("destroy").remove();
 	}).button();
 	
-	/*$("#LangCon_Glyph_subareas_snap_slider").slider({
-		min:0,
-		max:1<<SlideSnap.percentSnap.oom,
-		create: function(){
-			$("#LangCon_Glyph_subareas_snap_slider_handle").text(SlideSnap.percentSnap.values[0]+"%");
-		},
-		slide: function(event,ui){
-			let s = SlideSnap.percentSnap;
-			let p = s.snap(ui.value);
-			
-			$("#LangCon_Glyph_subareas_snap_slider_handle").text(p[1]+"%");
-			return true;
-		}
-	});*/
-	//CUS I GIV D F UP, selct mnu insted m8
+	$("#dialog_Glyph_create_button").click(function(){
+		let d = $("dialog#dialog_Glyph");
+		new LangCon.Glyph(
+			d.find("[name=name]").val()||"Glyph"+LangCon.pullID(),
+			d.find("[name=image_path]").val(),
+			d.find(".dialog_glyphFrame").children(".dialog_Glyph_subarea").sort((x,y)=>+$(x).attr("no")>+$(y).attr("no"))
+				.map((_,x)=>{["left","top","width","height"].map( p => +$(x).css(p)/300 )) 
+			);
+		d.dialog("close");
+	}).button();
 	
 	$("#LangCon_container").controlgroup();
 	$("#LangCon_menu").controlgroup();
