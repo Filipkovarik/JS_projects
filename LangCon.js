@@ -192,7 +192,7 @@ $(function(){
 			d.find(".dialog_glyphFrame").children(".dialog_Glyph_subarea").sort((x,y)=>+$(x).attr("no")>+$(y).attr("no"))
 				.map((_,x) => 
 					["left","top","width","height"].map( p => +$(x).css(p)/300 )
-				) 
+				).get();
 			);
 		d.dialog("close");
 	}).button();
