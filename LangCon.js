@@ -190,7 +190,9 @@ $(function(){
 			d.find("[name=name]").val()||"Glyph"+LangCon.pullID(),
 			d.find("[name=image_path]").val(),
 			d.find(".dialog_glyphFrame").children(".dialog_Glyph_subarea").sort((x,y)=>+$(x).attr("no")>+$(y).attr("no"))
-				.map((_,x)=>{["left","top","width","height"].map( p => +$(x).css(p)/300 )) 
+				.map((_,x) => 
+					["left","top","width","height"].map( p => +$(x).css(p)/300 )
+				) 
 			);
 		d.dialog("close");
 	}).button();
