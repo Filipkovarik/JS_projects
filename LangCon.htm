@@ -1,5 +1,7 @@
+<!DOCTYPE html>
 <html>
     <head>
+	<meta charset="UTF-8">
 	<link rel="stylesheet" href="lib/jquery-ui.min.css">
 		
         <style type="text/css">
@@ -99,9 +101,14 @@
 			
              .alt {
                 border: 1px dashed blue;
-                justify-content: center;
-                align-items: center;
+				width: 100%;
+				height: 100%;
+				position: relative;
             }
+			
+			.alt_text {
+				position: absolute;
+			}
             
             .glyph {
                 width: 100%;
@@ -123,6 +130,24 @@
 			#dialog_Glyph_create_button {
 				float: right;
 			}
+			
+			#dialog_PositionCombine_subglyphs_table {
+				border-collapse: collapse;
+				border: 3px ridge lightgray;
+				
+				
+			}
+			
+			#dialog_PositionCombine_subglyphs_table tr {
+				border: 2px ridge lightgray;
+			}
+			
+			
+			#dialog_PositionCombine_subglyphs_table td, #dialog_PositionCombine_subglyphs_table th {
+				border: 1px solid lightgray;
+				padding: 6px;
+			}
+			
         </style>
 		<script type="text/javascript" src="lib/jquery.js"></script>
 		<script type="text/javascript" src="lib/jquery-ui.min.js"></script>
@@ -136,9 +161,8 @@
 				<button id="LangCon_menu_add_button" class="ui-button ui-widget ui-corner-all ui-button-icon-only"></button>
 				<ul id="LangCon_menu_add_menu">
 					<li><div name="Glyph">Glyph</div></li>
-					<li><div name="VerticalCombine">Vertical combination</div></li>
-					<li><div name="HorizontalCombine">Horizontal combination</div></li>
-					<li><div name="CustomCombine">Subarea insertion</div></li>
+					<li><div name="PositionCombine">Glyph Combination</div></li>
+					<li><div name="CustomCombine">Glyph subarea completion</div></li>
 					<li><div name="Category">Category</div></li>
 				</ul>
 				</div>
@@ -147,8 +171,8 @@
 				</ul>
 			</div>
 		</div>
+		
 		<dialog id="dialog_Glyph" title="Define new Glyph">
-			
 			<div class="dialog_glyphFrame"></div>
 			<div id="dialog_Glyph_subareas">
 				<label for="name">Name your glyph:</label>
@@ -159,10 +183,30 @@
 				<br>
 				
 			</div>
+			<br>
 			<label for="image_path">Enter image path or SVG definition:</label>
 			<textarea id="dialog_Glyph_GlyphImage" name="image_path"></textarea>
 			<button id="dialog_Glyph_SVG_button">SVG</button>
 			<button id="dialog_Glyph_create_button">Create</button>
+		</dialog>
+		
+		<dialog id="dialog_PositionCombine">
+			<div class="dialog_glyphFrame"></div>
+			<div id="dialog_PositionCombine_subglyphs"></div>
+				<table id="dialog_PositionCombine_subglyphs_table">
+					<tbody id="dialog_PositionCombine_subglyphs_table_inner">
+						<tr id="dialog_PositionCombine_subglyphs_table_head"><th>Name</th><th>Ratio</th></tr>
+					</tbody>
+				</table><br>
+				<button id="dialog_PositionCombine_subglyphs_add">Add subglyph</button>
+				
+				<fieldset id="dialog_PositionCombine_orientation">
+					<legend>Orientation: </legend>
+					<label for="orientation_horizontal">Horizontal</label>
+					<input type="radio" name="dialog_PositionCombine_orientation" id="dialog_PositionCombine_orientation_horizontal" value="HorizontalCombine">
+					<label for="orientation_vertical">Vertical</label>
+					<input type="radio" name="dialog_PositionCombine_orientation" id="dialog_PositionCombine_orientation_vertical" value="VerticalCombine" checked>
+				</fieldset>
 		</dialog>
 			
         </body>
