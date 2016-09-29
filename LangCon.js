@@ -279,7 +279,8 @@ $(function(){
 	});
 	
 	$("#dialog_PositionCombine_subglyphs_add").click(function(){
-		
+		$('<tr><td><input type="text" class="dialog_PositionCombine_subglyphs_table_subglyph_name"></td><td></td><td></td></tr>')
+		.appendTo($("#dialog_PositionCombine_subglyphs_table_inner"))
 	}).button();
 	
 	$("input[type=radio][name=dialog_PositionCombine_orientation]").checkboxradio().on("change",function(e){
