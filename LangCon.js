@@ -194,8 +194,8 @@ $(function(){
 			
 			new c("PCTemp",...($("#dialog_PositionCombine_subglyphs_table tr:not(#dialog_PositionCombine_subglyphs_table_head)").map(
 				(_,x)=>[
-					x.find("input[type=text].dialog_PositionCombine_subglyphs_table_subglyph_name"),
-					x.find("input[type=text].dialog_PositionCombine_subglyphs_table_subglyph_ratio")
+					x.find("input[type=text].dialog_PositionCombine_subglyphs_table_subglyph_name").val(),
+					x.find("input[type=text].dialog_PositionCombine_subglyphs_table_subglyph_ratio").val()
 					]
 			)));
 			$("#dialog_PositionCombine .dialog_glyphFrame").html(LangCon.glyphs.PCTemp);
@@ -279,8 +279,15 @@ $(function(){
 	});
 	
 	$("#dialog_PositionCombine_subglyphs_add").click(function(){
-		$('<tr><td><input type="text" class="dialog_PositionCombine_subglyphs_table_subglyph_name"></td><td></td><td></td></tr>')
-		.appendTo($("#dialog_PositionCombine_subglyphs_table_inner"))
+		let s = $('<tr><td><input type="text" class="dialog_PositionCombine_subglyphs_table_subglyph_name"></td><td><input class="dialog_PositionCombine_subglyphs_table_subglyph_ratio"></td><td><button></button></td></tr>');
+		s.find(".dialog_PositionCombine_subglyphs_table_subglyph_ratio").spinner({min: 1})
+		s.find("button").click(function(){
+			let p = $(this).parent();
+			p.find(".dialog_PositionCombine_subglyphs_table_subglyph_ratio").spinner("destroy");
+			$(this).button("destroy");
+			p.remove();
+		}).button({showLabel:false, icon:"ui-icon-close"})
+		s.appendTo($("#dialog_PositionCombine_subglyphs_table_inner"))
 	}).button();
 	
 	$("input[type=radio][name=dialog_PositionCombine_orientation]").checkboxradio().on("change",function(e){
