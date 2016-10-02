@@ -47,6 +47,7 @@ LC.internal.glyphs.fromDef = function (obj){
 	}
 	return unDEFed;
 }
+LC.internal.DO_NOT_ASSIGN = {};
 
 LC.save = function(){localStorage.setItem(LSkey,JSON.stringify(LC.internal.glyphs.toDef()));}
 LC.load = function(){LC.glyphs = LC.internal.glyphs.fromDef(JSON.parse(localStorage.getItem(LSkey)));}
@@ -62,7 +63,7 @@ LC.Glyph = class Glyph {
 		this.name = name;
     	this.src = src;
   		this.subareas = subareas;
-		LC.assign(this);
+		name==LC.internal.DO_NOT_ASSIGN||LC.assign(this);
 	}
 	
 	static fromDef (obj) {
@@ -89,32 +90,51 @@ let RS = LC.internal.Resize = function Resize(glyph, left, top, width, height){ 
 
 let PC = LC.internal.PositionCombine = class PositionCombine extends LC.Glyph {
 	constructor (name, ...glyphs) { //name, [glyph(, ratio)] (,[glyph(, ratio)]) .IS //ratio (name instanceof Object){glyphs = LC.parse(name.glyphs); name = name.name;}s noflex-grois.;lyphs = glyghs;
+		super(LC.internal.DO_NOT_ASSIGN);
 		this.name = name || "C("+this.glyphs.map(x=>x[0].name).join("&")+")"+LC.pullID();
+		this.glyphs = glyphs||[];
 	}
 	
 	static fromDef(obj) {
 		return new LC[obj.type](obj.name, ...(obj.glyphs.map(x=>LC.glyphs[x])));
 	}
 	
-	toDef (id){
-		return {name: id + this.name, glyphs: this.glyphs.map(x=>x.name)}
+	toDef (){
+		return {name:  this.name, glyphs: this.glyphs.map(x=>x.name)}
 	}
 }
 
 let VC = LC.VerticalCombine = class VerticalCombine extends LC.internal.PositionCombine {
 	constructor() {
-	    this.super.apply(this,arguments);
-	    this.name = "V"+this.name;
+	    super(...arguments);
+	    this.name = arguments[0]||"V"+this.name;
 		LC.assign(this);
 	}
 
 	toHTML () {
-		return '<div class="vertical-combine">$subglyphs</div>'.replace("$subglyphs",this.subglyphs.map(([g,r])=>RS(g,r)));
+		return '<div class="vertical-combine">$glyphs</div>'.replace("$glyphs",this.glyphs.map(([g,r])=>RS(g,r)));
 	}
 	
 	toDef(){
-		let s = superprototype.toDef.call(this,"V");
+		let s = LangCon.internal.PositionCombine.prototype.toDef.call(this);
 		s.type = "VerticalCombine";
+	}
+}
+
+let HC = LC.HorizontalCombine = class HorizontalCombine extends LC.internal.PositionCombine {
+	constructor() {
+	    super(...arguments);
+	    this.name = arguments[0]||"H"+this.name;
+		LC.assign(this);
+	}
+
+	toHTML () {
+		return '<div class="horizontal-combine">$glyphs</div>'.replace("$glyphs",this.glyphs.map(([g,r])=>RS(g,r)));
+	}
+	
+	toDef(){
+		let s = LangCon.internal.PositionCombine.prototype.toDef.call(this);
+		s.type = "HorizontalCombine";
 	}
 }
 
@@ -179,7 +199,8 @@ LC.NEW.PositionCombine = function(){
 
 
 //Loading glyphs
-LC.load();	
+LC.load();
+
 
 })(jQuery)
 
@@ -192,13 +213,14 @@ $(function(){
 		dialog_PositionCombine_glyphFrame: function(){
 			let c = LangCon[$("input[type=radio][name=dialog_PositionCombine_orientation]:checked").val()];
 			
-			new c("PCTemp",...($("#dialog_PositionCombine_subglyphs_table tr:not(#dialog_PositionCombine_subglyphs_table_head)").map(
-				(_,x)=>[
-					x.find("input[type=text].dialog_PositionCombine_subglyphs_table_subglyph_name").val(),
-					x.find("input[type=text].dialog_PositionCombine_subglyphs_table_subglyph_ratio").val()
-					]
-			)));
-			$("#dialog_PositionCombine .dialog_glyphFrame").html(LangCon.glyphs.PCTemp);
+			new c("PCTemp", ...Array.prototype.map.call($("#dialog_PositionCombine_subglyphs_table tr:not(#dialog_PositionCombine_subglyphs_table_head)"),
+				x=>{
+					[
+					LangCon.glyphs[$(x).find("input[type=text].dialog_PositionCombine_subglyphs_table_subglyph_name").val()],
+					$(x).find("input[type=text].dialog_PositionCombine_subglyphs_table_subglyph_ratio").val()
+				]}
+			));
+			$("#dialog_PositionCombine .dialog_glyphFrame").html(LangCon.glyphs.PCTemp.toHTML());
 		}
 	};
 	//onLoad jQuery UI setup
@@ -280,14 +302,16 @@ $(function(){
 	
 	$("#dialog_PositionCombine_subglyphs_add").click(function(){
 		let s = $('<tr><td><input type="text" class="dialog_PositionCombine_subglyphs_table_subglyph_name"></td><td><input class="dialog_PositionCombine_subglyphs_table_subglyph_ratio"></td><td><button></button></td></tr>');
-		s.find(".dialog_PositionCombine_subglyphs_table_subglyph_ratio").spinner({min: 1})
+		s.find(".dialog_PositionCombine_subglyphs_table_subglyph_ratio").spinner({min: 1, width: 80, value: 1})
 		s.find("button").click(function(){
-			let p = $(this).parent();
+			let p = $(this).parent().parent();
 			p.find(".dialog_PositionCombine_subglyphs_table_subglyph_ratio").spinner("destroy");
 			$(this).button("destroy");
 			p.remove();
+			LangCon.updateables.dialog_PositionCombine_glyphFrame();
 		}).button({showLabel:false, icon:"ui-icon-close"})
-		s.appendTo($("#dialog_PositionCombine_subglyphs_table_inner"))
+		s.appendTo($("#dialog_PositionCombine_subglyphs_table_inner"));
+		LangCon.updateables.dialog_PositionCombine_glyphFrame();
 	}).button();
 	
 	$("input[type=radio][name=dialog_PositionCombine_orientation]").checkboxradio().on("change",function(e){
