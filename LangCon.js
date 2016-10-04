@@ -217,7 +217,7 @@ $(function(){
 				x=>{
 					[
 					LangCon.glyphs[$(x).find("input[type=text].dialog_PositionCombine_subglyphs_table_subglyph_name").val()],
-					$(x).find("input[type=text].dialog_PositionCombine_subglyphs_table_subglyph_ratio").val()
+					$(x).find("input.dialog_PositionCombine_subglyphs_table_subglyph_ratio").val()
 				]}
 			));
 			$("#dialog_PositionCombine .dialog_glyphFrame").html(LangCon.glyphs.PCTemp.toHTML());
@@ -302,10 +302,11 @@ $(function(){
 	
 	$("#dialog_PositionCombine_subglyphs_add").click(function(){
 		let s = $('<tr><td><input type="text" class="dialog_PositionCombine_subglyphs_table_subglyph_name"></td><td><input class="dialog_PositionCombine_subglyphs_table_subglyph_ratio"></td><td><button></button></td></tr>');
-		s.find(".dialog_PositionCombine_subglyphs_table_subglyph_ratio").spinner({min: 1, width: 80, value: 1})
+		s.find(".dialog_PositionCombine_subglyphs_table_subglyph_ratio").spinner({min: 1, width: 80}).spinner("value",1)
 		s.find("button").click(function(){
 			let p = $(this).parent().parent();
-			p.find(".dialog_PositionCombine_subglyphs_table_subglyph_ratio").spinner("destroy");
+			p.find(".dialog_PositionCombine_subglyphs_table_subglyph_name").on("keydown", function(){LangCon.updateables.dialog_PositionCombine_glyphFrame();});
+			p.find(".dialog_PositionCombine_subglyphs_table_subglyph_ratio").spinner("destroy").on("spinchange",function(){LangCon.updateables.dialog_PositionCombine_glyphFrame();});
 			$(this).button("destroy");
 			p.remove();
 			LangCon.updateables.dialog_PositionCombine_glyphFrame();

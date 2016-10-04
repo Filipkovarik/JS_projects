@@ -131,10 +131,15 @@
 				float: right;
 			}
 			
+			#dialog_PositionCombine_subglyphs {
+				display: inline-block;
+				margin-left: 10px;
+			}
+			
 			#dialog_PositionCombine_subglyphs_table {
 				border-collapse: collapse;
 				border: 3px ridge lightgray;
-				
+				display: inline-block; /* not inline-table */
 				
 			}
 			
@@ -200,14 +205,12 @@
 		
 		<dialog id="dialog_PositionCombine">
 			<div class="dialog_glyphFrame"></div>
-			<div id="dialog_PositionCombine_subglyphs"></div>
+			<div id="dialog_PositionCombine_subglyphs">
 				<table id="dialog_PositionCombine_subglyphs_table">
 					<tbody id="dialog_PositionCombine_subglyphs_table_inner">
 						<tr id="dialog_PositionCombine_subglyphs_table_head"><th>Name</th><th>Ratio</th></tr>
 					</tbody>
-				</table><br>
-				<button id="dialog_PositionCombine_subglyphs_add">Add subglyph</button>
-				<br>
+				</table>
 				<fieldset id="dialog_PositionCombine_orientation">
 					<legend>Orientation: </legend>
 					<label for="dialog_PositionCombine_orientation_horizontal">Horizontal</label>
@@ -215,6 +218,10 @@
 					<label for="dialog_PositionCombine_orientation_vertical">Vertical</label>
 					<input type="radio" name="dialog_PositionCombine_orientation" id="dialog_PositionCombine_orientation_vertical" value="VerticalCombine" checked>
 				</fieldset>
+				<br>
+				<button id="dialog_PositionCombine_subglyphs_add">Add subglyph</button>
+				
+			</div>
 		</dialog>
 			
         </body>
