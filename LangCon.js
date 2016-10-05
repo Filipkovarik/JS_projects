@@ -92,7 +92,7 @@ let PC = LC.internal.PositionCombine = class PositionCombine extends LC.Glyph {
 	constructor (name, ...glyphs) { //name, [glyph(, ratio)] (,[glyph(, ratio)]) .IS //ratio (name instanceof Object){glyphs = LC.parse(name.glyphs); name = name.name;}s noflex-grois.;lyphs = glyghs;
 		super(LC.internal.DO_NOT_ASSIGN);
 		this.name = name || "C("+this.glyphs.map(x=>x[0].name).join("&")+")"+LC.pullID();
-		this.glyphs = glyphs||[];
+		this.glyphs = glyphs.filter(x=>!!x)||[];
 	}
 	
 	static fromDef(obj) {
@@ -195,6 +195,9 @@ LC.NEW.Glyph = function(){
 
 LC.NEW.PositionCombine = function(){
 	$("dialog#dialog_PositionCombine").dialog("open");
+	$("#dialog_PositionCombine_subglyphs_table tr:not(#dialog_PositionCombine_subglyphs_table_head)").remove();
+
+	LangCon.updateables.dialog_PositionCombine_glyphFrame();
 }
 
 
@@ -213,13 +216,19 @@ $(function(){
 		dialog_PositionCombine_glyphFrame: function(){
 			let c = LangCon[$("input[type=radio][name=dialog_PositionCombine_orientation]:checked").val()];
 			
-			new c("PCTemp", ...Array.prototype.map.call($("#dialog_PositionCombine_subglyphs_table tr:not(#dialog_PositionCombine_subglyphs_table_head)"),
-				x=>{
-					[
-					LangCon.glyphs[$(x).find("input[type=text].dialog_PositionCombine_subglyphs_table_subglyph_name").val()],
-					$(x).find("input.dialog_PositionCombine_subglyphs_table_subglyph_ratio").val()
-				]}
-			));
+			new c("PCTemp",
+				...Array.prototype.map.call(
+					$("#dialog_PositionCombine_subglyphs_table tr:not(#dialog_PositionCombine_subglyphs_table_head)"),
+					x=>{ return
+						[
+							LangCon.glyphs[
+								$(x).find("input[type=text].dialog_PositionCombine_subglyphs_table_subglyph_name").val()
+							],
+							$(x).find("input.dialog_PositionCombine_subglyphs_table_subglyph_ratio").val()
+						]
+					}
+				)
+			);
 			$("#dialog_PositionCombine .dialog_glyphFrame").html(LangCon.glyphs.PCTemp.toHTML());
 		}
 	};
