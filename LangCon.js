@@ -85,7 +85,7 @@ LC.Glyph = class Glyph {
 let RS = LC.internal.Resize = function Resize(glyph, left, top, width, height){   //relative to superglyph
 	    if(top == undefined) return '<div class="resize-flex-grow" style="flex-grow: $flex-grow">$glyph</div>'.replace("$flex-grow",left||1).replace("$glyph",glyph.toHTML());
 	    let s = (x=>(100*x).toFixed(0));
-	    return '<div class="resize" style="position:relative; width: $w%; height: $h%; left: $l%; top: $t%;">$g</div>'.replace("$w",s(width)).replace("$h",s(height)).replace("$l",s(left)).replace("$t",s(top)).replace("$g",glyph.toHTML());
+	    return '<div class="resize glyph" style="position:relative; width: $w%; height: $h%; left: $l%; top: $t%;">$g</div>'.replace("$w",s(width)).replace("$h",s(height)).replace("$l",s(left)).replace("$t",s(top)).replace("$g",glyph.toHTML());
 };
 
 let PC = LC.internal.PositionCombine = class PositionCombine extends LC.Glyph {
@@ -112,7 +112,7 @@ let VC = LC.VerticalCombine = class VerticalCombine extends LC.internal.Position
 	}
 
 	toHTML () {
-		return '<div class="vertical-combine">$glyphs</div>'.replace("$glyphs",this.glyphs.map(([g,r])=>RS(g,r)));
+		return '<div class="vertical-combine glyph">$glyphs</div>'.replace("$glyphs",this.glyphs.map(([g,r])=>RS(g,r)));
 	}
 	
 	toDef(){
@@ -129,7 +129,7 @@ let HC = LC.HorizontalCombine = class HorizontalCombine extends LC.internal.Posi
 	}
 
 	toHTML () {
-		return '<div class="horizontal-combine">$glyphs</div>'.replace("$glyphs",this.glyphs.map(([g,r])=>RS(g,r)));
+		return '<div class="horizontal-combine glyph">$glyphs</div>'.replace("$glyphs",this.glyphs.map(([g,r])=>RS(g,r)));
 	}
 	
 	toDef(){
