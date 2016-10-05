@@ -219,8 +219,7 @@ $(function(){
 			new c("PCTemp",
 				...Array.prototype.map.call(
 					$("#dialog_PositionCombine_subglyphs_table tr:not(#dialog_PositionCombine_subglyphs_table_head)"),
-					x=>{ return
-						[
+					x=>{ return	[
 							LangCon.glyphs[
 								$(x).find("input[type=text].dialog_PositionCombine_subglyphs_table_subglyph_name").val()
 							],
