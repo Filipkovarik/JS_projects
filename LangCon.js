@@ -83,7 +83,7 @@ LC.Glyph = class Glyph {
 }
 
 let RS = LC.internal.Resize = function Resize(glyph, left, top, width, height){   //relative to superglyph
-	    if(top == undefined) return '<div class="resize-flex-grow" style="flex-grow: $flex-grow">$glyph</div>'.replace("$flex-grow",left||1).replace("$glyph",glyph.toHTML());
+	    if(top == undefined) return '<div class="resize-flex-grow  glyph" style="flex-grow: $flex-grow">$glyph</div>'.replace("$flex-grow",left||1).replace("$glyph",glyph.toHTML());
 	    let s = (x=>(100*x).toFixed(0));
 	    return '<div class="resize glyph" style="position:relative; width: $w%; height: $h%; left: $l%; top: $t%;">$g</div>'.replace("$w",s(width)).replace("$h",s(height)).replace("$l",s(left)).replace("$t",s(top)).replace("$g",glyph.toHTML());
 };
