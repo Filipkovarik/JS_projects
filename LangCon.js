@@ -83,7 +83,7 @@ LC.Glyph = class Glyph {
 }
 
 let RS = LC.internal.Resize = function Resize(glyph, left, top, width, height){   //relative to superglyph
-	    if(top == undefined) return '<div class="resize-flex-grow  glyph" style="flex-grow: $flex-grow">$glyph</div>'.replace("$flex-grow",left||1).replace("$glyph",glyph.toHTML());
+	    if(top == undefined) return '<div class="resize-flex-grow glyph" style="flex-grow: $flex-grow; flex-basis: 0;">$glyph</div>'.replace("$flex-grow",left||1).replace("$glyph",glyph.toHTML());
 	    let s = (x=>(100*x).toFixed(0));
 	    return '<div class="resize glyph" style="position:relative; width: $w%; height: $h%; left: $l%; top: $t%;">$g</div>'.replace("$w",s(width)).replace("$h",s(height)).replace("$l",s(left)).replace("$t",s(top)).replace("$g",glyph.toHTML());
 };
@@ -112,7 +112,7 @@ let VC = LC.VerticalCombine = class VerticalCombine extends LC.internal.Position
 	}
 
 	toHTML () {
-		return '<div class="vertical-combine glyph">$glyphs</div>'.replace("$glyphs",this.glyphs.map(([g,r])=>RS(g,r)));
+		return '<div class="vertical-combine glyph">$glyphs</div>'.replace("$glyphs",this.glyphs.map(([g,r])=>RS(g,r)).join(""));
 	}
 	
 	toDef(){
@@ -129,7 +129,7 @@ let HC = LC.HorizontalCombine = class HorizontalCombine extends LC.internal.Posi
 	}
 
 	toHTML () {
-		return '<div class="horizontal-combine glyph">$glyphs</div>'.replace("$glyphs",this.glyphs.map(([g,r])=>RS(g,r)));
+		return '<div class="horizontal-combine glyph">$glyphs</div>'.replace("$glyphs",this.glyphs.map(([g,r])=>RS(g,r)).join(""));
 	}
 	
 	toDef(){
@@ -205,6 +205,8 @@ LC.NEW.PositionCombine = function(){
 LC.load();
 
 
+new LC.Glyph("$NoSuchGlyph",'data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg"><text text-anchor="middle" x="50%" y="50%">Error: No such glyph</text></svg>');
+
 })(jQuery)
 
 $(function(){
@@ -222,7 +224,7 @@ $(function(){
 					x=>{ return	[
 							LangCon.glyphs[
 								$(x).find("input[type=text].dialog_PositionCombine_subglyphs_table_subglyph_name").val()
-							],
+							]||LangCon.glyphs.$NoSuchGlyph,
 							$(x).find("input.dialog_PositionCombine_subglyphs_table_subglyph_ratio").val()
 						]
 					}
@@ -310,10 +312,10 @@ $(function(){
 	
 	$("#dialog_PositionCombine_subglyphs_add").click(function(){
 		let s = $('<tr><td><input type="text" class="dialog_PositionCombine_subglyphs_table_subglyph_name"></td><td><input class="dialog_PositionCombine_subglyphs_table_subglyph_ratio"></td><td><button></button></td></tr>');
-		s.find(".dialog_PositionCombine_subglyphs_table_subglyph_ratio").spinner({min: 1, width: 80}).spinner("value",1)
+		s.find(".dialog_PositionCombine_subglyphs_table_subglyph_name").on("keydown change paste", function(){LangCon.updateables.dialog_PositionCombine_glyphFrame();});
+		s.find(".dialog_PositionCombine_subglyphs_table_subglyph_ratio").spinner({min: 1, width: 80, change: _=>LangCon.updateables.dialog_PositionCombine_glyphFrame()}).spinner("value",1)
 		s.find("button").click(function(){
 			let p = $(this).parent().parent();
-			p.find(".dialog_PositionCombine_subglyphs_table_subglyph_name").on("keydown", function(){LangCon.updateables.dialog_PositionCombine_glyphFrame();});
 			p.find(".dialog_PositionCombine_subglyphs_table_subglyph_ratio").spinner("destroy").on("spinchange",function(){LangCon.updateables.dialog_PositionCombine_glyphFrame();});
 			$(this).button("destroy");
 			p.remove();
