@@ -21,7 +21,7 @@ LC.glyphs.__$isGlyphList = true;
 
 
 //Storage functions
-LC.assign = function(glyph){LC.glyphs[glyph.name]=glyph; LC.save();};
+LC.assign = function(glyph){LC.glyphs[glyph.name]=glyph; ; LC.save();};
 LC.rename = function(name1,name2){let a = LC.glyphs[name1]; a.name = name2; delete LC[name1]; LC.assign(a);}
 
 LC.parse = function(obj){
@@ -62,12 +62,12 @@ LC.Glyph = class Glyph {
 	constructor (name, src, subareas) { //[left, top, width, height] ~ [0 to 1, 0 to 1, 0 to 1, 0 to 1] (multiple of superglyph)
 		this.name = name;
     	this.src = src;
-  		this.subareas = subareas;
+  		this.subareas = subareas||[];
 		name==LC.internal.DO_NOT_ASSIGN||LC.assign(this);
 	}
 	
 	static fromDef (obj) {
-		return new this(obj.name, obj.src, obj.subareas);
+		return new this(obj.name, obj.src, obj.subareas, obj.alttext);
 	}
 	
 	toHTML () {
@@ -85,14 +85,14 @@ LC.Glyph = class Glyph {
 let RS = LC.internal.Resize = function Resize(glyph, left, top, width, height){   //relative to superglyph
 	    if(top == undefined) return '<div class="resize-flex-grow glyph" style="flex-grow: $flex-grow; flex-basis: 0;">$glyph</div>'.replace("$flex-grow",left||1).replace("$glyph",glyph.toHTML());
 	    let s = (x=>(100*x).toFixed(0));
-	    return '<div class="resize glyph" style="position:relative; width: $w%; height: $h%; left: $l%; top: $t%;">$g</div>'.replace("$w",s(width)).replace("$h",s(height)).replace("$l",s(left)).replace("$t",s(top)).replace("$g",glyph.toHTML());
+	    return '<div class="resize glyph" style="position:absolute; width: $w%; height: $h%; left: $l%; top: $t%;">$g</div>'.replace("$w",s(width)).replace("$h",s(height)).replace("$l",s(left)).replace("$t",s(top)).replace("$g",glyph.toHTML());
 };
 
 let PC = LC.internal.PositionCombine = class PositionCombine extends LC.Glyph {
 	constructor (name, ...glyphs) { //name, [glyph(, ratio)] (,[glyph(, ratio)]) .IS //ratio (name instanceof Object){glyphs = LC.parse(name.glyphs); name = name.name;}s noflex-grois.;lyphs = glyghs;
 		super(LC.internal.DO_NOT_ASSIGN);
 		this.name = name || "C("+this.glyphs.map(x=>x[0].name).join("&")+")"+LC.pullID();
-		this.glyphs = glyphs.filter(x=>!!x)||[];
+		this.glyphs = glyphs;
 	}
 	
 	static fromDef(obj) {
@@ -138,38 +138,57 @@ let HC = LC.HorizontalCombine = class HorizontalCombine extends LC.internal.Posi
 	}
 }
 
-let CC = LC.Combine = class CustomCombine extends LC.Glyph {
+let CC = LC.CustomCombine = class CustomCombine extends LC.Glyph {
 	constructor (name, base, ...subglyphs)
 	{
+		super(LC.internal.DO_NOT_ASSIGN);
+		if(base instanceof Array) this.base = base[0];
+		else this.base = base;
+		if(subglyphs[0] instanceof Array) this.subglyphs = subglyphs.map(x=>x[0]);
+		else this.subglyphs = subglyphs;
+		this.subglyphs = this.subglyphs.map(x=>x==LC.glyphs.$NoSuchGlyph?undefined:x);
+		if(this.subglyphs.length > this.base.subareas.length) this.subglyphs.splice(this.base.subareas.length,this.subglyphs.length-this.base.subareas.length);
 		this.name = name || "CC(" + this.base.name + "," + this.subglyphs.map(x=>x[0].name) + ")";
-		this.base = base;
-		this.subglyphs = subglyphs;
-		if(this.subglyphs.length > this.base.subareas.length) throw new Facepalm();
 		LC.assign(this);
 	}
 	
 	static fromDef (obj){
-		return new this(obj.name,LC.parse(obj.base), ...(obj.subglyphs.map(x=>LC.glyphs[x])))
+		return new this(obj.name,LC.glyphs[obj.base], ...(obj.subglyphs.map(x=>LC.glyphs[x])));
 	}
 	
 	toDef(){
-		return {type: "Combine", name: this.name, subglyphs: this.subglyphs.map(x=>x?x.name:""), base: this.base.name};
+		return {type: "CustomCombine", name: this.name, subglyphs: this.subglyphs.map(x=>x?x.name:""), base: this.base.name};
 	}
 	    
 	toHTML(){
-		this.subglyphs.map((g,i)=>g?RS(g, ...this.subareas[i]):"")
+		let sglps = $(this.subglyphs.map((g,i)=>g?RS(g, ...this.base.subareas[i]):"").join(""));
+		let base = $(this.base.toHTML());
+		base.eq(1).append(sglps);
+		return base.get().map(x=>x.outerHTML).join("");
 	}
 }
 
 let Cat = LC.Category = class Category {
 	constructor (name,members){
 		this.name = name;
-		this.members = members||[];
+		this.members = members||N();
 		LC.assign(this);
 	}
 	
 	toDef (){
 		return {name: this.name, type:"Category", members: this.members.map(x=>x.name)};
+	}
+	
+	add (name){
+		this.members[name] = 1;
+	}
+	
+	remove (name){
+		delete this.members[name];
+	}
+	
+	toArray(){
+		return Object.keys(this.members);
 	}
 	
 	static fromDef(obj) {
@@ -194,12 +213,53 @@ LC.NEW.Glyph = function(){
 }
 
 LC.NEW.PositionCombine = function(){
-	$("dialog#dialog_PositionCombine").dialog("open");
 	$("#dialog_PositionCombine_subglyphs_table tr:not(#dialog_PositionCombine_subglyphs_table_head)").remove();
-
-	LangCon.updateables.dialog_PositionCombine_glyphFrame();
+	$("#dialog_PositionCombine_glyph_name").val("");
+	$("#dialog_PositionCombine_subglyphs_add").click();
+	$("#dialog_PositionCombine_subglyphs_add").click();
+	$("dialog#dialog_PositionCombine").dialog("open");
 }
 
+LC.EDIT.Glyph = function(name){
+	let s = LangCon.glyphs[name];
+	if(!s) {LC.NEW.Glyph(); return;}
+	$("#dialog_Glyph_GlyphImage").val(s.src).trigger("keyup");
+	$("#dialog_Glyph .dialog_glyphFrame").children().remove();
+	let t = x=>300*x+"px";
+	s.subareas.forEach(
+		x=>{
+			$("#dialog_Glyph_subareas_new").click();
+			$(".dialog_Glyph_subarea").eq(-1).css({left: t(x[0]), top: t(x[1]), width: t(x[2]), height: t(x[3])});
+		}
+	)
+	$("#dialog_Glyph input[name=name]").val(name);
+	$("dialog#dialog_Glyph").dialog("open");
+}
+
+LC.EDIT.PositionCombine = function(name){
+	let s = LangCon.glyphs[name];
+	if(!s) {LC.NEW.PositionCombine(); return;}
+	$("#dialog_PositionCombine_glyph_name").val(s.name);
+	let p = s.glyphs||s.subglyphs;
+	$("#dialog_PositionCombine_subglyphs_table tr:not(#dialog_PositionCombine_subglyphs_table_head)").remove();
+	if(s.base){
+		$("#dialog_PositionCombine_subglyphs_add").click();
+		let u = $("#dialog_PositionCombine_subglyphs_table_inner tr").eq(-1);
+		u.find(".dialog_PositionCombine_subglyphs_table_subglyph_name").val(s.base.name);
+		}
+	p.forEach(
+	x=>{
+		$("#dialog_PositionCombine_subglyphs_add").click();
+		let u = $("#dialog_PositionCombine_subglyphs_table_inner tr").eq(-1);
+		if(!(x instanceof Array))x=[x,1];
+		u.find(".dialog_PositionCombine_subglyphs_table_subglyph_name").val(x[0].name);
+		u.find(".dialog_PositionCombine_subglyphs_table_subglyph_ratio").val(x[1]);
+		}
+	)
+	$("#dialog_PositionCombine [value="+s.constructor.name+"]").click();
+	$("dialog#dialog_PositionCombine").dialog("open");
+
+}
 
 //Loading glyphs
 LC.load();
@@ -217,9 +277,7 @@ $(function(){
 	LangCon.updateables = {
 		dialog_PositionCombine_glyphFrame: function(){
 			let c = LangCon[$("input[type=radio][name=dialog_PositionCombine_orientation]:checked").val()];
-			
-			new c("PCTemp",
-				...Array.prototype.map.call(
+			let glps = Array.prototype.map.call(
 					$("#dialog_PositionCombine_subglyphs_table tr:not(#dialog_PositionCombine_subglyphs_table_head)"),
 					x=>{ return	[
 							LangCon.glyphs[
@@ -228,9 +286,19 @@ $(function(){
 							$(x).find("input.dialog_PositionCombine_subglyphs_table_subglyph_ratio").val()
 						]
 					}
-				)
+				);
+			new c("PCTemp",
+				...(glps.length?glps:[[LangCon.glyphs.$NoSuchGlyph,1]])
 			);
 			$("#dialog_PositionCombine .dialog_glyphFrame").html(LangCon.glyphs.PCTemp.toHTML());
+		},
+		accordion_menu: function(){
+			let s = $("#LangCon_menu_accordion");
+			s.children().remove();
+			s.append(Object.values(LangCon.glyphs).filter(x=>x instanceof LangCon.Category).map(
+			x => [ $("<h3>").text(x.name) , $("<div>").append($()) x.members.toArray().map(y=>LangCon.glyphs[y]) ]
+			));
+			.refresh();
 		}
 	};
 	//onLoad jQuery UI setup
@@ -240,8 +308,12 @@ $(function(){
 	
 	$("#LangCon_menu_accordion").accordion({heightStyle: "fill"});
 	$("#LangCon_menu_add_button").button({icon:"ui-icon-plus"});
+	$("#LangCon_menu_edit_button").button({icon:"ui-icon-gear"});
 	$("#LangCon_menu_add_menu").menu().children().children().click(function(e){
 		LangCon.NEW[$(e.target).attr("name")]();
+	});
+	$("#LangCon_menu_edit_menu").menu().children().children().click(function(e){
+		LangCon.EDIT[$(e.target).attr("name")]();
 	});
 	$("#LangCon_container").controlgroup();
 	$("#LangCon_menu").controlgroup();
@@ -294,10 +366,10 @@ $(function(){
 		new LangCon.Glyph(
 			d.find("[name=name]").val()||"Glyph"+LangCon.pullID(),
 			d.find("[name=image_path]").val(),
-			d.find(".dialog_glyphFrame").children(".dialog_Glyph_subarea").sort((x,y)=>+$(x).attr("no") > +$(y).attr("no"))
+			d.find(".dialog_glyphFrame").children(".dialog_Glyph_subarea").sort((x,y)=>+$(x).attr("no") > +$(y).attr("no")).get()
 				.map(
-					(_,x) => ["left","top","width","height"].map( p => +$(x).css(p)/300 )
-				).get()
+					x => ["left","top","width","height"].map( p => parseInt($(x).css(p))/300 )
+				)
 			);
 		d.dialog("close");
 	}).button();
@@ -312,7 +384,7 @@ $(function(){
 	
 	$("#dialog_PositionCombine_subglyphs_add").click(function(){
 		let s = $('<tr><td><input type="text" class="dialog_PositionCombine_subglyphs_table_subglyph_name"></td><td><input class="dialog_PositionCombine_subglyphs_table_subglyph_ratio"></td><td><button></button></td></tr>');
-		s.find(".dialog_PositionCombine_subglyphs_table_subglyph_name").on("keydown change paste", function(){LangCon.updateables.dialog_PositionCombine_glyphFrame();});
+		s.find(".dialog_PositionCombine_subglyphs_table_subglyph_name").on("keydown keyup change paste", function(){LangCon.updateables.dialog_PositionCombine_glyphFrame();});
 		s.find(".dialog_PositionCombine_subglyphs_table_subglyph_ratio").spinner({min: 1, width: 80, change: _=>LangCon.updateables.dialog_PositionCombine_glyphFrame()}).spinner("value",1)
 		s.find("button").click(function(){
 			let p = $(this).parent().parent();
@@ -329,6 +401,11 @@ $(function(){
 		if(!$(e.target).prop("checked")) return true;
 		LangCon.updateables.dialog_PositionCombine_glyphFrame();
 	});
+	
+	$("#dialog_PositionCombine_create_button").click(function(){
+		LangCon.rename("PCTemp",$("#dialog_PositionCombine_glyph_name").val());
+		$("#dialog_PositionCombine").dialog("close");
+	}).button();
 	
 	$("#dialog_PositionCombine_orientation").controlgroup();
 	

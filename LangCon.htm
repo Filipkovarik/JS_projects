@@ -36,7 +36,10 @@
 				border-radius: 4px;
 				padding: 5px;
 				
+			}
 			
+			#LangCon_menu_add, #LangCon_menu_edit {
+				display: inline-block;
 			}
 			
 			#LangCon_menu_add_menu {
@@ -44,6 +47,15 @@
 			}
 			
 			#LangCon_menu_add:hover #LangCon_menu_add_menu {
+				display: block;
+				position: absolute;
+			}
+			
+			#LangCon_menu_edit_menu {
+				display: none;
+			}
+			
+			#LangCon_menu_edit:hover #LangCon_menu_edit_menu {
 				display: block;
 				position: absolute;
 			}
@@ -143,7 +155,7 @@
 			#dialog_PositionCombine_subglyphs_table {
 				border-collapse: collapse;
 				border: 3px ridge lightgray;
-				display: inline-block; /* not inline-table */
+				display: inline-table;
 				
 			}
 			
@@ -165,6 +177,10 @@
 				display: inline-block;
 			}
 			
+			label[for=dialog_PositionCombine_glyph_name], fieldset#dialog_PositionCombine_orientation {margin-left: 20px}
+			
+			#dialog_PositionCombine_create_button {float: right}
+			
         </style>
 		<script type="text/javascript" src="lib/jquery.js"></script>
 		<script type="text/javascript" src="lib/jquery-ui.min.js"></script>
@@ -179,10 +195,16 @@
 				<ul id="LangCon_menu_add_menu">
 					<li><div name="Glyph">Glyph</div></li>
 					<li><div name="PositionCombine">Glyph Combination</div></li>
-					<li><div name="CustomCombine">Glyph subarea completion</div></li>
 					<li><div name="Category">Category</div></li>
 				</ul>
-				</div>
+			</div><div id="LangCon_menu_edit">
+				<button id="LangCon_menu_edit_button" class="ui-button ui-widget ui-corner-all ui-button-icon-only"></button>
+				<ul id="LangCon_menu_edit_menu">
+					<li><div name="Glyph">Glyph</div></li>
+					<li><div name="PositionCombine">Glyph Combination</div></li>
+					<li><div name="Category">Category</div></li>
+				</ul>
+			</div>
 				<ul id="LangCon_menu_accordion">
 				
 				</ul>
@@ -209,23 +231,27 @@
 		
 		<dialog id="dialog_PositionCombine">
 			<div class="dialog_glyphFrame"></div>
-			<div id="dialog_PositionCombine_subglyphs">
 				<table id="dialog_PositionCombine_subglyphs_table">
 					<tbody id="dialog_PositionCombine_subglyphs_table_inner">
 						<tr id="dialog_PositionCombine_subglyphs_table_head"><th>Name</th><th>Ratio</th></tr>
 					</tbody>
 				</table>
+				<br>
+				<button id="dialog_PositionCombine_subglyphs_add">Add subglyph</button>
 				<fieldset id="dialog_PositionCombine_orientation">
-					<legend>Orientation: </legend>
+					<legend>Type: </legend>
 					<label for="dialog_PositionCombine_orientation_horizontal">Horizontal</label>
 					<input type="radio" name="dialog_PositionCombine_orientation" id="dialog_PositionCombine_orientation_horizontal" value="HorizontalCombine">
 					<label for="dialog_PositionCombine_orientation_vertical">Vertical</label>
 					<input type="radio" name="dialog_PositionCombine_orientation" id="dialog_PositionCombine_orientation_vertical" value="VerticalCombine" checked>
+					<label for="dialog_PositionCombine_orientation_custom">By subarea</label>
+					<input type="radio" name="dialog_PositionCombine_orientation" id="dialog_PositionCombine_orientation_custom" value="CustomCombine">
 				</fieldset>
-				<br>
-				<button id="dialog_PositionCombine_subglyphs_add">Add subglyph</button>
 				
-			</div>
+				<label for="dialog_PositionCombine_glyph_name">Name your glyph:</label>
+				<input type="text" id="dialog_PositionCombine_glyph_name">
+				<button id="dialog_PositionCombine_create_button">Create</button>
+				
 		</dialog>
 			
         </body>
