@@ -21,8 +21,8 @@ LC.glyphs.__$isGlyphList = true;
 
 
 //Storage functions
-LC.assign = function(glyph){LC.glyphs[glyph.name]=glyph; ; LC.save();};
-LC.rename = function(name1,name2){let a = LC.glyphs[name1]; a.name = name2; delete LC[name1]; LC.assign(a);}
+LC.assign = function(glyph){LC.glyphs[glyph.name]=glyph; LangCon.updateables?LangCon.updateables.accordion_menu():setTimeout(_=>LangCon.updateables.accordion_menu(),1000); LC.save();};
+LC.rename = function(name1,name2){let a = LC.glyphs[name1]; a.name = name2; delete LC.glyphs[name1]; LC.assign(a);}
 
 LC.parse = function(obj){
 if(obj instanceof Array) return obj.map(x=>LC.parse(x));
@@ -176,15 +176,17 @@ let Cat = LC.Category = class Category {
 	}
 	
 	toDef (){
-		return {name: this.name, type:"Category", members: this.members.map(x=>x.name)};
+		return {name: this.name, type:"Category", members: this.toArray()};
 	}
 	
 	add (name){
 		this.members[name] = 1;
+		LangCon.save();
 	}
 	
 	remove (name){
 		delete this.members[name];
+		LangCon.save();
 	}
 	
 	toArray(){
@@ -192,7 +194,7 @@ let Cat = LC.Category = class Category {
 	}
 	
 	static fromDef(obj) {
-		return new this(obj.name, obj.members.map(x=>LC.glyphs[x]));
+		return new this(obj.name, (o=>{obj.members.forEach(x=>o[x]=1);return o})({}));
 	}
 }
 
@@ -218,6 +220,10 @@ LC.NEW.PositionCombine = function(){
 	$("#dialog_PositionCombine_subglyphs_add").click();
 	$("#dialog_PositionCombine_subglyphs_add").click();
 	$("dialog#dialog_PositionCombine").dialog("open");
+}
+
+LC.NEW.Category = function(){
+	new LC.Category(prompt("Enter category name:",""));
 }
 
 LC.EDIT.Glyph = function(name){
@@ -261,11 +267,17 @@ LC.EDIT.PositionCombine = function(name){
 
 }
 
+LC.EDIT.Category = function(){
+	LC.rename($("#LangCon_menu_accordion .ui-accordion-header-active").text(),prompt("Enter new name for category:",""))
+}
+
 //Loading glyphs
 LC.load();
 
 
 new LC.Glyph("$NoSuchGlyph",'data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg"><text text-anchor="middle" x="50%" y="50%">Error: No such glyph</text></svg>');
+
+
 
 })(jQuery)
 
@@ -296,9 +308,19 @@ $(function(){
 			let s = $("#LangCon_menu_accordion");
 			s.children().remove();
 			s.append(Object.values(LangCon.glyphs).filter(x=>x instanceof LangCon.Category).map(
-			x => [ $("<h3>").text(x.name) , $("<div>").append($()) x.members.toArray().map(y=>LangCon.glyphs[y]) ]
-			));
-			.refresh();
+			x => $("<h3>").text(x.name).add(
+					$('<div>').append(
+						$(
+							x.toArray().sort((x,y)=>(x>y)-(y>x))
+							.map(y=>{
+								let g = LangCon.glyphs[y];
+								return $("<div>").text(y).prepend($("<div>").append($(g.toHTML())));
+							}).reduce(function(a,b){return a.add(b)},$())
+						)
+					)
+				)
+			).reduce(function(a,b){return a.add(b)},$()))
+			.accordion("refresh");
 		}
 	};
 	//onLoad jQuery UI setup

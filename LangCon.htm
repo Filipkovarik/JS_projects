@@ -44,6 +44,7 @@
 			
 			#LangCon_menu_add_menu {
 				display: none;
+				z-index: 90;
 			}
 			
 			#LangCon_menu_add:hover #LangCon_menu_add_menu {
@@ -53,6 +54,7 @@
 			
 			#LangCon_menu_edit_menu {
 				display: none;
+				z-index: 90;
 			}
 			
 			#LangCon_menu_edit:hover #LangCon_menu_edit_menu {
@@ -64,7 +66,25 @@
 				
 			}
 			
+			LangCon_menu_accordion > div {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: flex-start;
+			}
 			
+			LangCon_menu_accordion > div > div {
+				display: inline-block;
+				padding: 5px;
+				text-align: left;
+				max-height: 50px;
+			}
+			
+			LangCon_menu_accordion > div > div > div {
+				float: left;
+				width: 35%;
+				height: 80%;
+			}
+					
 			.dialog_glyphFrame {
 				width: 300px;
 				height: 300px;
@@ -181,6 +201,8 @@
 			
 			#dialog_PositionCombine_create_button {float: right}
 			
+			LangCon_menu_accordion *.alt_text {display: none; position: static; }
+			
         </style>
 		<script type="text/javascript" src="lib/jquery.js"></script>
 		<script type="text/javascript" src="lib/jquery-ui.min.js"></script>
@@ -253,6 +275,6 @@
 				<button id="dialog_PositionCombine_create_button">Create</button>
 				
 		</dialog>
-			
+		
         </body>
 </html>
