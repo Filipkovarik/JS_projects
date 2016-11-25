@@ -1,4 +1,4 @@
-//At this point, this is just a jumble of some code that will (probably) turn into the resulting JS code
+//At this point, this is just a jumble of some code that will (probably not) turn into the resulting JS code
 
 <div id="history" style="position: fixed; left: 30vw; top: -60vh; width: 35vw; max-height: 100vh; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; box-shadow: rgba(0, 0, 0, 0.498039) 0px 0px 3px 0px; background-color: rgb(21, 101, 192);"><div id="historyContent" style="
     height: 60vh;
