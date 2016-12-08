@@ -21,8 +21,30 @@ LC.glyphs.__$isGlyphList = true;
 
 
 //Storage functions
-LC.assign = function(glyph){LC.glyphs[glyph.name]=glyph; LangCon.updateables?LangCon.updateables.accordion_menu():setTimeout(_=>LangCon.updateables.accordion_menu(),1000); LC.save();};
-LC.rename = function(name1,name2){let a = LC.glyphs[name1]; a.name = name2; delete LC.glyphs[name1]; LC.assign(a);}
+LC.assign = function(glyph,__$Do_not_save){
+	LC.glyphs[glyph.name]=glyph;
+	if(glyph instanceof LangCon.Glyph)LangCon.glyphs.All.add(glyph.name); 
+	LangCon.updateables?LangCon.updateables.accordion_menu():setTimeout(_=>LangCon.updateables.accordion_menu(),1000);
+	__$Do_not_save||LC.save();
+	};
+	
+LC.rename = function(name1,name2){
+	let a = LC.glyphs[name1];
+	a.name = name2;
+	delete LC.glyphs[name1];
+	for (let member of Object.values(LangCon.glyphs))
+		if(member instanceof LangCon.Category)member.renameHandle(name1,name2);
+	LC.assign(a);
+	}
+	
+LC.delete = function(name,__$Do_not_save){
+	delete LC.glyphs[name1];
+	for (let member of Object.values(LangCon.glyphs))
+		if(member instanceof LangCon.Category)member.remove(name1);
+	LangCon.glyphs.All.remove(name);
+	LangCon.updateables?LangCon.updateables.accordion_menu():setTimeout(_=>LangCon.updateables.accordion_menu(),1000);
+	__$Do_not_save||LC.save();
+	}
 
 LC.parse = function(obj){
 if(obj instanceof Array) return obj.map(x=>LC.parse(x));
@@ -169,10 +191,10 @@ let CC = LC.CustomCombine = class CustomCombine extends LC.Glyph {
 }
 
 let Cat = LC.Category = class Category {
-	constructor (name,members){
+	constructor (name,members,__$Do_not_save){
 		this.name = name;
 		this.members = members||N();
-		LC.assign(this);
+		LC.assign(this,__$Do_not_save);
 	}
 	
 	toDef (){
@@ -189,6 +211,13 @@ let Cat = LC.Category = class Category {
 		LangCon.save();
 	}
 	
+	renameHandle (name1,name2){
+		if(this[name1]==1){
+			remove(name1);
+			add(name2);
+		}
+	}
+	
 	toArray(){
 		return Object.keys(this.members);
 	}
@@ -201,7 +230,9 @@ let Cat = LC.Category = class Category {
 
 
 LC.draw = function(name){
-   LC.DOM.html(LC.glyphs[name].toHTML()); 
+	LC.DOM.children(".alt_text").remove();
+	LC.DOM.children(".glyph").remove();
+	LC.DOM.prepend($(LC.glyphs[name].toHTML())); 
 }
 
 LC.NEW = N();
@@ -271,11 +302,13 @@ LC.EDIT.Category = function(){
 	LC.rename($("#LangCon_menu_accordion .ui-accordion-header-active").text(),prompt("Enter new name for category:",""))
 }
 
+new LC.Category("All",N(),true);
+
 //Loading glyphs
 LC.load();
 
 
-new LC.Glyph("$NoSuchGlyph",'data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg"><text text-anchor="middle" x="50%" y="50%">Error: No such glyph</text></svg>');
+new LC.Glyph("$NoSuchGlyph",'data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg"><text text-anchor="middle" x="50%" y="50%" lengthAdjust="spacingAndGlyphs" textLength="100%">Error: No such glyph</text></svg>');
 
 
 
