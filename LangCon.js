@@ -304,11 +304,8 @@ LC.EDIT.Category = function(){
 
 new LC.Category("All",N(),true);
 LC.glyphs.All.members = new Proxy(LC.glyphs.All.members,{
-	get:function(target,key){
-		if(key==="members"){
-				for (let glyph of Object.values(Object.create(target[key])))
-					if(!LangCon.glyphs[glyph]) target.remove(glyph);
-		}
+	get: function(target,key){
+		if(LangCon.glyphs[key]===undefined) delete target[key];
 		return target[key];
 	}})
 
