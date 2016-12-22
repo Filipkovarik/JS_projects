@@ -213,8 +213,8 @@ let Cat = LC.Category = class Category {
 	
 	renameHandle (name1,name2){
 		if(this.members[name1]==1){
-			remove(name1);
-			add(name2);
+			this.remove(name1);
+			this.add(name2);
 		}
 	}
 	
