@@ -316,6 +316,12 @@ LC.load();
 new LC.Glyph("$NoSuchGlyph",'data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg"><text text-anchor="middle" x="50%" y="50%" lengthAdjust="spacingAndGlyphs" textLength="100%">Error: No such glyph</text></svg>');
 
 
+LC.sel = function(name){
+	LC.draw(name);
+	arguments.callee.glyph_name = name;
+	LangCon.updateables.accordion_menu();
+}
+LC.sel.glyph_name = "$NoSuchGlyph";
 
 })(jQuery)
 
@@ -352,7 +358,7 @@ $(function(){
 							x.toArray().sort((x,y)=>(x>y)-(y>x))
 							.map(y=>{
 								let g = LangCon.glyphs[y];
-								return $("<div>").text(y).prepend($("<div>").append($(g.toHTML())));
+								return $("<div>").text(y).addClass(function(){return $(this).text()===LangCon.sel.glyph_name?"selected_glyph":"ignore_this"}).click(_=>LangCon.sel(y)).prepend($("<div>").append($(g.toHTML())));
 							}).reduce(function(a,b){return a.add(b)},$())
 						)
 					)
