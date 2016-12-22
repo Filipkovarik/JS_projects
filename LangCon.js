@@ -212,7 +212,7 @@ let Cat = LC.Category = class Category {
 	}
 	
 	renameHandle (name1,name2){
-		if(this[name1]==1){
+		if(this.members[name1]==1){
 			remove(name1);
 			add(name2);
 		}
@@ -379,7 +379,7 @@ $(function(){
 		LangCon.NEW[$(e.target).attr("name")]();
 	});
 	$("#LangCon_menu_edit_menu").menu().children().children().click(function(e){
-		LangCon.EDIT[$(e.target).attr("name")]();
+		LangCon.EDIT[$(e.target).attr("name")](LangCon.sel.glyph_name);
 	});
 	$("#LangCon_container").controlgroup();
 	$("#LangCon_menu").controlgroup();
