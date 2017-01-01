@@ -302,6 +302,9 @@ LC.EDIT.Category = function(){
 	LC.rename($("#LangCon_menu_accordion .ui-accordion-header-active").text(),prompt("Enter new name for category:",""))
 }
 
+//Loading glyphs
+LC.load();
+
 new LC.Category("All",N(),true);
 LC.glyphs.All.members = new Proxy(LC.glyphs.All.members,{
 	get: function(target,key){
@@ -309,8 +312,8 @@ LC.glyphs.All.members = new Proxy(LC.glyphs.All.members,{
 		return target[key];
 	}})
 
-//Loading glyphs
-LC.load();
+
+
 
 
 new LC.Glyph("$NoSuchGlyph",'data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg"><text text-anchor="middle" x="50%" y="50%" lengthAdjust="spacingAndGlyphs" textLength="100%">Error: No such glyph</text></svg>');
