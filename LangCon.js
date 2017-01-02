@@ -23,7 +23,8 @@ LC.glyphs.__$isGlyphList = true;
 //Storage functions
 LC.assign = function(glyph,__$Do_not_save){
 	LC.glyphs[glyph.name]=glyph;
-	if(glyph instanceof LangCon.Glyph)LangCon.glyphs.All.add(glyph.name); 
+	LC.glyphs.All||new LC.Category("All",N(),true);
+	if(glyph instanceof LangCon.Glyph)LangCon.glyphs.All.add(glyph.name,__$Do_not_save); 
 	LangCon.updateables?LangCon.updateables.accordion_menu():setTimeout(_=>LangCon.updateables.accordion_menu(),1000);
 	__$Do_not_save||LC.save();
 	};
@@ -37,10 +38,10 @@ LC.rename = function(name1,name2){
 	LC.assign(a);
 	}
 	
-LC.delete = function(name,__$Do_not_save){
-	delete LC.glyphs[name1];
+LC.delete_ = function(name,__$Do_not_save){
+	delete LC.glyphs[name];
 	for (let member of Object.values(LangCon.glyphs))
-		if(member instanceof LangCon.Category)member.remove(name1);
+		if(member instanceof LangCon.Category)member.remove(name);
 	LangCon.glyphs.All.remove(name);
 	LangCon.updateables?LangCon.updateables.accordion_menu():setTimeout(_=>LangCon.updateables.accordion_menu(),1000);
 	__$Do_not_save||LC.save();
@@ -48,7 +49,7 @@ LC.delete = function(name,__$Do_not_save){
 
 LC.parse = function(obj){
 if(obj instanceof Array) return obj.map(x=>LC.parse(x));
-   return LC[obj.type].fromDef(obj); 
+   return LC[obj.type].fromDef(obj,true);  //Do not save when loading
 };
 
 LC.internal.glyphs.toDef = function (){
@@ -81,15 +82,15 @@ LC.pullID.id = 0;
 
 
 LC.Glyph = class Glyph {
-	constructor (name, src, subareas) { //[left, top, width, height] ~ [0 to 1, 0 to 1, 0 to 1, 0 to 1] (multiple of superglyph)
+	constructor (name, src, subareas, __$Do_not_save) { //[left, top, width, height] ~ [0 to 1, 0 to 1, 0 to 1, 0 to 1] (multiple of superglyph)
 		this.name = name;
     	this.src = src;
   		this.subareas = subareas||[];
-		name==LC.internal.DO_NOT_ASSIGN||LC.assign(this);
+		LC.assign(this,__$Do_not_save);
 	}
 	
-	static fromDef (obj) {
-		return new this(obj.name, obj.src, obj.subareas, obj.alttext);
+	static fromDef (obj, __$Do_not_save) {
+		return new this(obj.name, obj.src, obj.subareas, __$Do_not_save);
 	}
 	
 	toHTML () {
@@ -112,13 +113,13 @@ let RS = LC.internal.Resize = function Resize(glyph, left, top, width, height){ 
 
 let PC = LC.internal.PositionCombine = class PositionCombine extends LC.Glyph {
 	constructor (name, ...glyphs) { //name, [glyph(, ratio)] (,[glyph(, ratio)]) .IS //ratio (name instanceof Object){glyphs = LC.parse(name.glyphs); name = name.name;}s noflex-grois.;lyphs = glyghs;
-		super(LC.internal.DO_NOT_ASSIGN);
+		super(name, undefined, undefined, __$Do_not_save);
 		this.name = name || "C("+this.glyphs.map(x=>x[0].name).join("&")+")"+LC.pullID();
 		this.glyphs = glyphs;
 	}
 	
-	static fromDef(obj) {
-		return new LC[obj.type](obj.name, ...(obj.glyphs.map(x=>LC.glyphs[x])));
+	static fromDef(obj, __$Do_not_save) {
+		return new LC[obj.type](obj.name, __$Do_not_save, ...(obj.glyphs.map(x=>LC.glyphs[x])));
 	}
 	
 	toDef (){
@@ -127,10 +128,10 @@ let PC = LC.internal.PositionCombine = class PositionCombine extends LC.Glyph {
 }
 
 let VC = LC.VerticalCombine = class VerticalCombine extends LC.internal.PositionCombine {
-	constructor() {
+	constructor(name, __$Do_not_save, ...glyphs) {
 	    super(...arguments);
 	    this.name = arguments[0]||"V"+this.name;
-		LC.assign(this);
+		LC.assign(this,__$Do_not_save);
 	}
 
 	toHTML () {
@@ -144,10 +145,10 @@ let VC = LC.VerticalCombine = class VerticalCombine extends LC.internal.Position
 }
 
 let HC = LC.HorizontalCombine = class HorizontalCombine extends LC.internal.PositionCombine {
-	constructor() {
+	constructor(name, __$Do_not_save, ...glyphs) {
 	    super(...arguments);
 	    this.name = arguments[0]||"H"+this.name;
-		LC.assign(this);
+		LC.assign(this,__$Do_not_save);
 	}
 
 	toHTML () {
@@ -161,9 +162,9 @@ let HC = LC.HorizontalCombine = class HorizontalCombine extends LC.internal.Posi
 }
 
 let CC = LC.CustomCombine = class CustomCombine extends LC.Glyph {
-	constructor (name, base, ...subglyphs)
+	constructor (name, base, __$Do_not_save, ...subglyphs)
 	{
-		super(LC.internal.DO_NOT_ASSIGN);
+		super();
 		if(base instanceof Array) this.base = base[0];
 		else this.base = base;
 		if(subglyphs[0] instanceof Array) this.subglyphs = subglyphs.map(x=>x[0]);
@@ -171,11 +172,11 @@ let CC = LC.CustomCombine = class CustomCombine extends LC.Glyph {
 		this.subglyphs = this.subglyphs.map(x=>x==LC.glyphs.$NoSuchGlyph?undefined:x);
 		if(this.subglyphs.length > this.base.subareas.length) this.subglyphs.splice(this.base.subareas.length,this.subglyphs.length-this.base.subareas.length);
 		this.name = name || "CC(" + this.base.name + "," + this.subglyphs.map(x=>x[0].name) + ")";
-		LC.assign(this);
+		LC.assign(this,__$Do_not_save);
 	}
 	
-	static fromDef (obj){
-		return new this(obj.name,LC.glyphs[obj.base], ...(obj.subglyphs.map(x=>LC.glyphs[x])));
+	static fromDef (obj, __$Do_not_save){
+		return new this(obj.name, LC.glyphs[obj.base], __$Do_not_save, ...(obj.subglyphs.map(x=>LC.glyphs[x])),);
 	}
 	
 	toDef(){
@@ -201,14 +202,14 @@ let Cat = LC.Category = class Category {
 		return {name: this.name, type:"Category", members: this.toArray()};
 	}
 	
-	add (name){
+	add (name, __$Do_not_save){
 		this.members[name] = 1;
-		LangCon.save();
+		__$Do_not_save||LangCon.save();
 	}
 	
-	remove (name){
+	remove (name, __$Do_not_save){
 		delete this.members[name];
-		LangCon.save();
+		__$Do_not_save||LangCon.save();
 	}
 	
 	renameHandle (name1,name2){
@@ -222,8 +223,8 @@ let Cat = LC.Category = class Category {
 		return Object.keys(this.members);
 	}
 	
-	static fromDef(obj) {
-		return new this(obj.name, (o=>{obj.members.forEach(x=>o[x]=1);return o})({}));
+	static fromDef(obj,__$Do_not_save) {
+		return new this(obj.name, (o=>{obj.members.forEach(x=>o[x]=1);return o})({}), __$Do_not_save);
 	}
 }
 
@@ -302,27 +303,39 @@ LC.EDIT.Category = function(){
 	LC.rename($("#LangCon_menu_accordion .ui-accordion-header-active").text(),prompt("Enter new name for category:",""))
 }
 
+LC.DELETE = function(){
+	if(LC.DELETE.SURE(LC.sel.glyph_name))
+		LangCon.delete_(LC.sel.glyph_name);
+	while(!LangCon.sel("$NoSuchGlyph")) LangCon.basic_glyphs(); //syntactic sugar, max 2 loops
+	
+}
+
+LC.DELETE.SURE = function(name){
+	return LangCon.DOMCheckedDelete() || confirm("Are you sure you want to delete glyph " + name + "?");
+}
+
 //Loading glyphs
 LC.load();
 
-new LC.Category("All",N(),true);
-LC.glyphs.All.members = new Proxy(LC.glyphs.All.members,{
-	get: function(target,key){
-		if(LangCon.glyphs[key]===undefined) delete target[key];
-		return target[key];
-	}})
 
 
 
 
 
-new LC.Glyph("$NoSuchGlyph",'data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg"><text text-anchor="middle" x="50%" y="50%" lengthAdjust="spacingAndGlyphs" textLength="100%">Error: No such glyph</text></svg>');
+
+
+LC.basic_glyphs = function(){LC.glyphs.$NoSuchGlyph||new LC.Glyph("$NoSuchGlyph",'data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg"><text text-anchor="middle" x="50%" y="50%" lengthAdjust="spacingAndGlyphs" textLength="100%">Error: No such glyph</text></svg>');}
+LC.basic_glyphs();
 
 
 LC.sel = function(name){
+	if(!LC.glyphs[name]) return false;
 	LC.draw(name);
 	arguments.callee.glyph_name = name;
-	LangCon.updateables.accordion_menu();
+	//LangCon.updateables.accordion_menu();
+	$(".selected_glyph").toggleClass("unselected_glyph selected_glyph");
+	$(".unselected_glyph[glyph_name='"+name+"']").toggleClass("unselected_glyph selected_glyph");
+	return true;
 }
 LC.sel.glyph_name = "$NoSuchGlyph";
 
@@ -332,7 +345,7 @@ $(function(){
 	
 	LangCon.DOM = $("#LangCon_glyphFrame");
 	LangCon.DOMMenu = $("#LangCon_menu_accordion");
-	
+	LangCon.DOMCheckedDelete = function(){return $("#LangCon_menu_delete_checkbox").prop("checked");}
 	LangCon.updateables = {
 		dialog_PositionCombine_glyphFrame: function(){
 			let c = LangCon[$("input[type=radio][name=dialog_PositionCombine_orientation]:checked").val()];
@@ -358,10 +371,10 @@ $(function(){
 			x => $("<h3>").text(x.name).add(
 					$('<div>').append(
 						$(
-							x.toArray().sort((x,y)=>(x>y)-(y>x))
+							x.toArray().sort((o,p)=>(o>p)-(p>o))
 							.map(y=>{
 								let g = LangCon.glyphs[y];
-								return $("<div>").text(y).addClass(function(){return $(this).text()===LangCon.sel.glyph_name?"selected_glyph":"ignore_this"}).click(_=>LangCon.sel(y)).prepend($("<div>").append($(g.toHTML())));
+								return $("<div>").attr("glyph_name",y).text(y).addClass(function(){return $(this).text()===LangCon.sel.glyph_name?"selected_glyph":"unselected_glyph"}).click(_=>LangCon.sel(y)).prepend($("<div>").append($(g.toHTML())));
 							}).reduce(function(a,b){return a.add(b)},$())
 						)
 					)
@@ -377,13 +390,24 @@ $(function(){
 	
 	$("#LangCon_menu_accordion").accordion({heightStyle: "fill"});
 	$("#LangCon_menu_add_button").button({icon:"ui-icon-plus"});
-	$("#LangCon_menu_edit_button").button({icon:"ui-icon-gear"});
+	$("#LangCon_menu_edit_button").button({icon:"ui-icon-gear"}).click(function(e){
+		let s = LangCon.sel.glyph_name;
+		let g = LangCon.glyphs[s];
+		let t;
+		if(g instanceof LangCon.Category) t = "Category";
+			else if (g instanceof LangCon.CustomCombine) t = "PositionCombine";
+			else t="Glyph";
+		LangCon.EDIT[t](s);
+	});
+	$("#LangCon_menu_delete_button").button({icon:"ui-icon-trash"}).click(function(e){
+		LangCon.DELETE();
+	});
 	$("#LangCon_menu_add_menu").menu().children().children().click(function(e){
 		LangCon.NEW[$(e.target).attr("name")]();
 	});
-	$("#LangCon_menu_edit_menu").menu().children().children().click(function(e){
+	/*$("#LangCon_menu_edit_menu").menu().children().children().click(function(e){
 		LangCon.EDIT[$(e.target).attr("name")](LangCon.sel.glyph_name);
-	});
+	});*/
 	$("#LangCon_container").controlgroup();
 	$("#LangCon_menu").controlgroup();
 	})();

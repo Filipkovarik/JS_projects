@@ -38,7 +38,7 @@
 				display:block;
 			}
 			
-			#LangCon_menu_add, #LangCon_menu_edit {
+			#LangCon_menu_add, #LangCon_menu_edit, #LangCon_menu_delete {
 				display: inline-block;
 			}
 			
@@ -70,7 +70,19 @@
 			
 			#LangCon_menu_edit_button {
 				border-left: transparent;
+				border-right: transparent;
+				margin-right: 0;
 				padding: 15px;
+			}
+			
+			#LangCon_menu_delete_button {
+				border-left: transparent;
+				margin-right: 0;
+				padding: 15px;
+			}
+			
+			label[for=LangCon_menu_delete_checkbox] {
+				font-size: 15px
 			}
 			
 			#LangCon_menu_accordion > div {
@@ -244,17 +256,17 @@
 				></ul
 			></div><div id="LangCon_menu_edit"
 				><button id="LangCon_menu_edit_button" class="ui-button ui-widget ui-corner-all ui-button-icon-only"></button
-				><ul id="LangCon_menu_edit_menu"
+				><!--<ul id="LangCon_menu_edit_menu"
 					><li><div name="Glyph">Glyph</div></li
 					><li><div name="PositionCombine">Glyph Combination</div></li
 					><li><div name="Category">Category</div></li
 				></ul
-			></div>
-				<ul id="LangCon_menu_accordion">
+			>--></div><div id="LangCon_menu_delete"
+				><button id="LangCon_menu_delete_button" class="ui-button ui-widget ui-corner-all ui-button-icon-only"></button
+				><input id="LangCon_menu_delete_checkbox" type="checkbox"></input><label for="LangCon_menu_delete_checkbox">Don't confirm deletion</label></div><ul id="LangCon_menu_accordion">
 				
-				</ul>
-			</div>
-		</div>
+				</ul></div>
+			
 		
 		<dialog id="dialog_Glyph" title="Define new Glyph">
 			<div class="dialog_glyphFrame"></div>
