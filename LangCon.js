@@ -25,7 +25,7 @@ LC.assign = function(glyph,__$Do_not_save){
 	LC.glyphs[glyph.name]=glyph;
 	LC.glyphs.All||new LC.Category("All",N(),true);
 	if(glyph instanceof LangCon.Glyph)LangCon.glyphs.All.add(glyph.name,__$Do_not_save); 
-	LangCon.updateables?LangCon.updateables.accordion_menu():setTimeout(_=>LangCon.updateables.accordion_menu(),1000);
+	LangCon.updateables?LangCon.updateables.accordion_menu():setTimeout(_=>LangCon.updateables.accordion_menu(),2000);
 	__$Do_not_save||LC.save();
 	};
 	
@@ -112,7 +112,7 @@ let RS = LC.internal.Resize = function Resize(glyph, left, top, width, height){ 
 };
 
 let PC = LC.internal.PositionCombine = class PositionCombine extends LC.Glyph {
-	constructor (name, ...glyphs) { //name, [glyph(, ratio)] (,[glyph(, ratio)]) .IS //ratio (name instanceof Object){glyphs = LC.parse(name.glyphs); name = name.name;}s noflex-grois.;lyphs = glyghs;
+	constructor (name, __$Do_not_save, ...glyphs) { //name, [glyph(, ratio)] (,[glyph(, ratio)]) .IS //ratio (name instanceof Object){glyphs = LC.parse(name.glyphs); name = name.name;}s noflex-grois.;lyphs = glyghs;
 		super(name, undefined, undefined, __$Do_not_save);
 		this.name = name || "C("+this.glyphs.map(x=>x[0].name).join("&")+")"+LC.pullID();
 		this.glyphs = glyphs;
@@ -164,7 +164,7 @@ let HC = LC.HorizontalCombine = class HorizontalCombine extends LC.internal.Posi
 let CC = LC.CustomCombine = class CustomCombine extends LC.Glyph {
 	constructor (name, base, __$Do_not_save, ...subglyphs)
 	{
-		super();
+		super(undefined, undefined, undefined,  __$Do_not_save);
 		if(base instanceof Array) this.base = base[0];
 		else this.base = base;
 		if(subglyphs[0] instanceof Array) this.subglyphs = subglyphs.map(x=>x[0]);
@@ -176,7 +176,7 @@ let CC = LC.CustomCombine = class CustomCombine extends LC.Glyph {
 	}
 	
 	static fromDef (obj, __$Do_not_save){
-		return new this(obj.name, LC.glyphs[obj.base], __$Do_not_save, ...(obj.subglyphs.map(x=>LC.glyphs[x])),);
+		return new this(obj.name, LC.glyphs[obj.base], __$Do_not_save, ...(obj.subglyphs.map(x=>LC.glyphs[x])));
 	}
 	
 	toDef(){
