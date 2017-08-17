@@ -20,7 +20,8 @@ canvash = 256
 GameCanvas.clearRect(0,0,canvasw,canvash)
 
 GameObject = function GameObject (sprite,hitbox,name) {
-	o = class GameObjectInstance {
+	
+	o = class {
 		constructor(x, y, hs, vs){
 			this.x = x;
 			this.y = y;
@@ -32,14 +33,14 @@ GameObject = function GameObject (sprite,hitbox,name) {
 		draw(){
 			return this.getSprite().draw(this.x, this.y, GameCanvas)
 		}
-		checkCollide(obj){
-			this.getHitBox().checkHitBox(this.x, this.y, obj.getHitBox(), obj.x, obj.y)
+		checkCollide(obj, c){
+			return c ? this.getHitBox().checkHitBox(this.x, this.y, obj.getHitBox(), obj.x, obj.y) : (this.checkCollide(obj, true) || obj.checkCollide(this, true));
 		}
 		getHitBox(){
-			return hitbox
+			return this.constructor.hitbox
 		}
 		getSprite(){
-			return sprite
+			return this.constructor.sprite
 		}
 		tickPhysics(){
 			this.x+=this.hs
@@ -49,8 +50,10 @@ GameObject = function GameObject (sprite,hitbox,name) {
 	o.sprite = sprite
 	o.hitbox = hitbox
 	o._name = name
+	GameObjectTypes[o._name]=o
 	return o
 }
+GameObjectTypes = {}
 
 GameInstanceList = []
 
@@ -74,7 +77,7 @@ HitBox = class HitBox {
 	}
 	
 	checkHitBox(selfx, selfy, hitbox, boxx, boxy){
-		return hitbox.rectangles.some(r=>this.checkRect(selfx, selfy, r, boxx, boxy))
+		return hitbox.rectangles.some(r=>this.checkRect(selfx, selfy, r, boxx, boxy));
 	}
 }
 
@@ -82,12 +85,12 @@ PlayerObj = new GameObject(
 	new Sprite(
 		function draw(x, y, cn){
 			cn.fillStyle = "green"
-			cn.fillRect(x, y, canvasw/10, -canvash/10)
+			cn.fillRect(x, y, ~~(canvasw/10), -~~(canvash/10))
 		}
 	),
 	new HitBox(
 		[
-			{x1:0, y1:0, x2: canvasw/10, y2: -canvash/10}
+			{x1:0, y1:0, x2: ~~(canvasw/10), y2: -~~(canvash/10)}
 		]
 	),
 	"Player"
@@ -109,22 +112,22 @@ FloorObj = new GameObject(
 		]
 	),
 	"Floor"
-)
+);
 
 ObstacleObj = new GameObject(
 	new Sprite(
 		function draw(x, y, cn){
 			cn.fillStyle = "red"
-			cn.fillRect(x, y, canvasw/10, -canvash/10)
+			cn.fillRect(x, y, ~~(canvasw/10), -~~(canvash/10))
 		}
 	),
 	new HitBox(
 		[
-			{x1:0, y1:0, x2: canvasw/10, y2: -canvash/10}
+			{x1:0, y1:0, x2: ~~(canvasw/10), y2: -~~(canvash/10)}
 		]
 	),
 	"Obstacle"
-)
+);
 
 var gameBegin
 
