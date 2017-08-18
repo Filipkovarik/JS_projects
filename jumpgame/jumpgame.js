@@ -182,7 +182,7 @@ function gameLoop(){
 	if (Player.y < Floor.y) Player.vs += 2 - +!!(checkJump(true) && Player.vs < 0)
 	if (Player.y > Floor.y) {Player.y = Floor.y; Player.vs = 0}
 	if (Player.y == Floor.y && checkJump()) Player.vs = -10
-	if (false && GameInstanceList.filter(x=>x.obj_type == "Obstacle").some(o=>o.checkCollide(Player))){
+	if (GameInstanceList.filter(x=>x.obj_type == "Obstacle").some(o=>o.checkCollide(Player))){
 		GameCanvas.clearRect(0,0,canvasw,canvash)
 		GameInstanceList.forEach(x=>x.draw())
 		clearInterval(game.interval)
