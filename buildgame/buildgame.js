@@ -93,6 +93,6 @@ Game.StructureType = class StructureType {
 		}
 		
 		this.Structure.props = props
-		this.Structure.tileName = name
+		this.Structure.structName = name
 	}
 }
