@@ -145,7 +145,7 @@ game = function game(){
 
 GameInstanceList = [];
 
-Player = new PlayerObj(0, ~~(canvash/2)-20)
+Player = new PlayerObj(20, ~~(canvash/2)-20)
 
 Floor = new FloorObj(0, ~~(canvash/2))
 
