@@ -92,7 +92,7 @@ Game.StructureType = class StructureType {
 			}
 		}
 		
-		this.Tile.props = props
-		this.Tile.tileName = name
+		this.Structure.props = props
+		this.Structure.tileName = name
 	}
 }
