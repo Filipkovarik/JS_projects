@@ -33,20 +33,14 @@ Game.TileSet = class TileSet extends Array {
 	}
 }
 
-Game.TileType = class TileType {
-	constructor (props){
-		this.props = props
-	}
-}
-
 Game.Tile = class Tile {
 	constructor(x, y, tileType, boundStruct){
-		this.x = x;
-		this.y = y;
-		this.tileType = tileType;
-		this.boundStruct = boundStruct;
+			this.x = x;
+			this.y = y;
+			this.tileType = tileType;
+			this.boundStruct = boundStruct;
 	}
-	
+		
 	create(){
 		
 	}
@@ -56,8 +50,23 @@ Game.Tile = class Tile {
 	}
 }
 
+Game.TileType = class TileType {
+	constructor(name, props) {
+		tiletype = this
+		this.Tile = class Tile extends Game.Tile {
+			constructor(x, y, boundStruct){
+				super(x, y, tiletype, boundStruct)
+			}
+		}
+		
+		this.Tile.props = props
+		this.Tile.tileName = name
+	}
+}
+
+
 Game.Structure = class Structure { //use for 1×1 too
-	constructor (x, y, boardseg){
+	constructor (x, y, structtype, boundTiles){
 		
 	}
 	
@@ -74,3 +83,16 @@ Game.Structure = class Structure { //use for 1×1 too
 	}
 }
 
+Game.StructureType = class StructureType {
+	constructor(name, props) {
+		structtype = this
+		this.Structure = class Structure extends Game.Structure {
+			constructor(x, y, boundTiles){
+				super(x, y, structtype, boundTiles)
+			}
+		}
+		
+		this.Tile.props = props
+		this.Tile.tileName = name
+	}
+}
