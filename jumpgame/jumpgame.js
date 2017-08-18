@@ -1,4 +1,4 @@
-var game
+var game, registerJump
 
 $(_=>{
 
@@ -13,8 +13,8 @@ function cartes(a,b){
 	return r
 }
 
-
-GameCanvas = $("canvas")[0].getContext("2d")
+GameCanvasElem = $("canvas")[0]
+GameCanvas = GameCanvasElem.getContext("2d")
 canvasw = 256
 canvash = 256
 GameCanvas.clearRect(0,0,canvasw,canvash)
@@ -141,7 +141,12 @@ TimerObj = new GameObject(
 	"Timer"
 )
 
+registerJump = function registerJump(b){registerJump.jumping = registerJump.jumpingk = (b==undefined?true:b)}
+checkJump = function checkJump(r){j = r?registerJump.jumpingk:registerJump.jumping; if(!r) registerJump.jumping = false; return j}
+
 game = function game(){
+
+if(game.interval!==undefined) return;
 
 GameInstanceList = [];
 
@@ -151,18 +156,19 @@ Floor = new FloorObj(0, ~~(canvash/2))
 
 Timer = new TimerObj(0,0)
 
-var keyDown = [];
+registerJump(false)
 var KEY_SPACE = 32;
 var lastObstacle = +new Date()
 gameBegin = +new Date()
 function gameLoop(){
+	//debug()
 	
+	$(window).keyup(function(e) {if (e.keyCode == KEY_SPACE) registerJump(false)})
+	$(window).keydown(function(e) {if (e.keyCode == KEY_SPACE) registerJump()})
+	$(GameCanvasElem).on('mousedown touchstart',x=>registerJump())
+	$(GameCanvasElem).on('mouseup click mouseout touchend touchcancel',x=>registerJump(false))
 	
-	window.onkeyup = function(e) {keyDown[e.keyCode]=false;}
-	window.onkeydown = function(e) {keyDown[e.keyCode]=true;}
-	
-	
-	gameTime = +new Date()-gameBegin
+	gameTime = +new Date() - gameBegin
 	
 	
 	if (+new Date() - lastObstacle > 700 - ~~(gameTime/1E3)) if(Math.random()<0.1) {new ObstacleObj(canvasw+20, ([~~(canvash/2), ~~(canvash/3)])[+(Math.random()<0.3)], -~~(gameTime/70E3)-6); lastObstacle = +new Date()}
@@ -173,13 +179,14 @@ function gameLoop(){
 	GameInstanceList.forEach(x=>x.draw())
 	GameInstanceList.forEach(x=>x.tickPhysics())
 	
-	if (Player.y < Floor.y) Player.vs += 2 - +!!(keyDown[KEY_SPACE] && Player.vs < 0)
+	if (Player.y < Floor.y) Player.vs += 2 - +!!(checkJump(true) && Player.vs < 0)
 	if (Player.y > Floor.y) {Player.y = Floor.y; Player.vs = 0}
-	if (Player.y == Floor.y && keyDown[KEY_SPACE]) Player.vs = -10
-	if (GameInstanceList.filter(x=>x.obj_type == "Obstacle").some(o=>o.checkCollide(Player))){
+	if (Player.y == Floor.y && checkJump()) Player.vs = -10
+	if (false && GameInstanceList.filter(x=>x.obj_type == "Obstacle").some(o=>o.checkCollide(Player))){
 		GameCanvas.clearRect(0,0,canvasw,canvash)
 		GameInstanceList.forEach(x=>x.draw())
 		clearInterval(game.interval)
+		game.interval = undefined
 	}
 	
 }
@@ -189,7 +196,12 @@ game.interval = setInterval(gameLoop, 30)
 
 }
 
-//game()
+function debug(){
+	vars = ["registerJump.jumping", "registerJump.jumpingk"]
+	$("#debug").html(vars.map(x=> x + ": " + eval(x)).join("<br>"))
+}
+//$(document.createElement("div")).appendTo("body").attr("id","debug")
+
 
 
 })
