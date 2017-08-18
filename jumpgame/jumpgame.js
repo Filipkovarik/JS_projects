@@ -63,7 +63,7 @@ Sprite = class Sprite {
 
 HitBox = class HitBox {
 	constructor(rectangles){
-		this.rectangles = rectangles
+		this.rectangles = rectangles.map(r=>({ x1: Math.min(r.x1,r.x2), x2: Math.max(r.x1,r.x2), y1: Math.min(r.y1,r.y2), y2: Math.max(r.y1,r.y2) }))
 	}
 	
 	checkPoint(selfx, selfy, x, y){
@@ -143,6 +143,8 @@ TimerObj = new GameObject(
 
 game = function game(){
 
+GameInstanceList = [];
+
 Player = new PlayerObj(0, ~~(canvash/2)-20)
 
 Floor = new FloorObj(0, ~~(canvash/2))
@@ -153,21 +155,20 @@ var keyDown = [];
 var KEY_SPACE = 32;
 var lastObstacle = +new Date()
 gameBegin = +new Date()
-var game_running = true
 function gameLoop(){
 	
 	
 	window.onkeyup = function(e) {keyDown[e.keyCode]=false;}
 	window.onkeydown = function(e) {keyDown[e.keyCode]=true;}
 	
-
+	
 	gameTime = +new Date()-gameBegin
 	
-	if (game_running){
+	
 	if (+new Date() - lastObstacle > 700 - ~~(gameTime/1E3)) if(Math.random()<0.1) {new ObstacleObj(canvasw+20, ([~~(canvash/2), ~~(canvash/3)])[+(Math.random()<0.3)], -~~(gameTime/70E3)-6); lastObstacle = +new Date()}
 		
 	GameInstanceList = GameInstanceList.filter(o=> Math.abs(o.x) < canvasw*3 && Math.abs(o.y) < canvash*3)
-
+	
 	GameCanvas.clearRect(0,0,canvasw,canvash)
 	GameInstanceList.forEach(x=>x.draw())
 	GameInstanceList.forEach(x=>x.tickPhysics())
@@ -175,7 +176,9 @@ function gameLoop(){
 	if (Player.y < Floor.y) Player.vs += 2 - +!!(keyDown[KEY_SPACE] && Player.vs < 0)
 	if (Player.y > Floor.y) {Player.y = Floor.y; Player.vs = 0}
 	if (Player.y == Floor.y && keyDown[KEY_SPACE]) Player.vs = -10
-	if (GameInstanceList.filter(x=>x.obj_type == "Obstacle").some(o=>o.checkCollide(Player)))
+	if (GameInstanceList.filter(x=>x.obj_type == "Obstacle").some(o=>o.checkCollide(Player))){
+		GameCanvas.clearRect(0,0,canvasw,canvash)
+		GameInstanceList.forEach(x=>x.draw())
 		clearInterval(game.interval)
 	}
 	
@@ -186,7 +189,7 @@ game.interval = setInterval(gameLoop, 30)
 
 }
 
-game()
+//game()
 
 
 })
