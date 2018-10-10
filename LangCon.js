@@ -55,7 +55,7 @@ if(obj instanceof Array) return obj.map(x=>LC.parse(x));
 LC.internal.glyphs.toDef = function (){
 	let DEFed = N();
 	for (let k in LC.glyphs){
-		if(Object.prototype.hasOwnProperty.call(LC.glyphs,k))
+		if(Object.prototype.hasOwnProperty.call(LC.glyphs,k) && k !== "All")
 			if(k[0]+k[1]+k[2] == "__$") {DEFed[k]=LC.glyphs[k]; continue;}
 			DEFed[k] = LC.glyphs[k].toDef();
 	}
@@ -73,7 +73,7 @@ LC.internal.glyphs.fromDef = function (obj){
 LC.internal.DO_NOT_ASSIGN = {};
 
 LC.save = function(){localStorage.setItem(LSkey,JSON.stringify(LC.internal.glyphs.toDef()));}
-LC.load = function(){LC.glyphs = LC.internal.glyphs.fromDef(JSON.parse(localStorage.getItem(LSkey)));}
+LC.load = function(){let l = LC.internal.glyphs.fromDef(JSON.parse(localStorage.getItem(LSkey))); Object.keys(l).forEach(k=>{if(k!=="All")LC.glyphs[k]=l[k]})}
 
 LC.pullID = function(){return arguments.callee.id++};
 LC.pullID.id = 0;
