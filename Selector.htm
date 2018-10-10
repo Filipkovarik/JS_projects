@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<title>s</title>
+<link rel="stylesheet" href="lib/jquery-ui.min.css">
+<style type="text/css">
+* {padding:0; margin:0;}
+svg {height: 100vmin; width:100vmin}
+
+.clickable {cursor: pointer;}
+</style>
+</head>
+<body>
+<svg xmlns='http://www.w3.org/2000/svg' viewBox="0 0 3000 3000">
+ <defs>
+    <radialGradient id="gr1">
+      <stop offset="0%" style="stop-color:rgb(255,255,0);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:rgb(255,0,0);stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  <polygon points="0,3000 3000,3000 1500,0 0,3000" fill="url(#gr1)" />
+  <ellipse cx="1500" cy="2000" rx="100" ry="100" fill="white" fill-opacity="0.3" stroke="black" stroke-width="20" class="clickable" id="selector_pointer" />
+</svg>
+
+<script type="text/javascript" src="lib/jquery.js"></script>
+<script type="text/javascript" src="lib/jquery-ui.min.js"></script>
+<script src="lib/jquery.ui.touch-punch.min.js"></script>
+<script src="selector.js"></script>
+<script>
+
+</script>
+</body>
+</html>
