@@ -27,7 +27,7 @@ TapWrap.prototype=
 				return val?g:this;
 			}
 };
-Object.defineProperty(Object.prototype,"tapWrap",{value:function(){return TapWrap(this);}})
+Object.defineProperty(Object.prototype,"tapWrap",{value:function(){return TapWrap(this);}, writable: true, configurable: true, enumerable: false})
 }
 
 function Facepalm(){Error.apply(this,arguments);}
@@ -37,13 +37,14 @@ function Facepalm(){Error.apply(this,arguments);}
 
 
 let AAM = AAMotor = function(){}
-AAM.tapWrap.set({
+AAM.tapWrap()
+.set({
 	e:{//enums
 		gender:{MALE:"Male",FEMALE:"Female","???":"???", HIDDEN: {toString:_=>throw new Facepalm("Someone here is lazy for proper code")}},
 		voice:{ //?simplify toDef functions here?
 			MALE:	{filename:"human", pitch:1},
 			FEMALE: {filename:"human", pitch:2},
-			MIDWAY: {filename:"human", pitch:Math.sqrt(2)}
+			ANDROGYNOUS: {filename:"human", pitch:Math.sqrt(2)}
 			TYPEWRITER: {filename:"typewriter",pitch:1},
 			NONE: {}
 		}
@@ -52,21 +53,24 @@ AAM.tapWrap.set({
 }
 .set({
 	C:{ //classes
-		Story: TapWrap(function Script(){
+		Story: TapWrap(function Story(){
 			
 		}).set({prototype:{
 			
 		}}),
+		
 		Script: TapWrap(function Script(){
 			
 		}).set({prototype:{
 			
 		}}),
+		
 		Scene: TapWrap(function Scene(){
 			
 		}).set({prototype:{
 			
 		}}),
+		
 		Character: TapWrap(function Character(desc,dispname,props,spriteset){
 			this.desc = desc;
 			this.dispname = dispname;
@@ -78,16 +82,19 @@ AAM.tapWrap.set({
 			age: -1,
 			voice: AAM.e.voice.NONE
 		}}),
+		
 		Spriteset: TapWrap(function(){
 			
 		}).set({prototype:{
 			
-		}})
+		}}),
+		
 		Evidence: TapWrap(function Evidence(desc,checkB){
 			
 		}).set({prototype:{
 			checkB:	false;
 		}}),
+		
 		Description: TapWrap(function Description(name,meta,text){
 			this.name = name;
 			this.meta = meta;
@@ -98,6 +105,7 @@ AAM.tapWrap.set({
 			text:""
 			toDef: function(){return {$TYPE: this.constructor.name, name:this.name, meta:this.meta, text: this.text}}
 		}}),
+		
 		Variables: TapWrap(function(){
 			
 		}).set({prototype:{
