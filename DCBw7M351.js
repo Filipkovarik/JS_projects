@@ -2,6 +2,8 @@
 const client = new Discord.Client();
 const http = require("http");
 const auth = require("./auth.json");
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
 const prefix = "§";
 
 parseargs = (x, delimiter='"') => 
