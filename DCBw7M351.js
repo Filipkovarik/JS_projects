@@ -2,6 +2,9 @@
 const client = new Discord.Client();
 const http = require("http");
 const auth = require("./auth.json");
+const req = require("./req.json")
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
 const prefix = "§";
 
 parseargs = (x, delimiter='"') => 
@@ -11,6 +14,15 @@ x.split(" ").reduce(
     if (strEnd) val = val.substring(0, val.length - 1);
     return ((arr[arr.length-1] || "")[0] !== delimiter) ? arr.concat([val]) : [arr.pop().substring(strEnd ? 1 : 0) + " " + val, ...(arr.reverse()) ].reverse() },
 [] ).map(x => x.replace(new RegExp('\\\\' + delimiter, 'gm'), delimiter).replace(/\\\\/gm, "\\"));
+
+splitarray = (array, callback) => {
+	let indices = [0], chunks = [];
+	array.forEach((elem, index, arr) => callback(elem, index, arr) && indices.push(index)); 
+	indices.push(array.length);
+	for (i = 1; i < indices.length; i++) chunks.push(array.slice( indices[i - 1] , indices[i] ))
+	return chunks
+}
+
 
 class Command {
     constructor (name, func, desc="", syntax="", argdesc={}, argcheck=()=>true, perms=0b0) {
@@ -45,10 +57,67 @@ class Command {
 
 Command._commands = {};
 
+class IRequest {
+	constructor(){
+		this.creq = http.get(req.url, {path: req.path, auth: req.user+":"+req.pass}, res => {
+			console.log("[IReq] Status " + res.statusCode);
+			if (res.statusCode !== 200) { res.resume(); return; }
+			res.setEncoding("windows-1250");
+			let rawData = '';
+			res.on('data', chunk => rawData += chunk );
+			res.on('end', _ => this.parse(rawData) );
+		}
+		this.timestamp = +(new Date());
+	}
+	
+	parse(html) {
+		console.log("[IReq] Data received");
+		const dom = new JSDOM(html);
+		const win = dom.window;
+		//const win = document // for in-page testing
+		const focusSelector = "body > center:nth-child(3) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1) > center:nth-child(1) > table:nth-child(2) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(4) > center:nth-child(1) > table:nth-child(2) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1) > center:nth-child(1)";
+		const elems = splitarray(Array.prototype.filter.call(win.querySelector(focusSelector).children, 
+			(elem, index, arr) => 
+				["font", "table", "center"].indexOf(elem.nodeName.toLowerCase()) > -1 
+				&& ( index == arr.length-1 || (elem.nodeName + arr[index+1].nodeName).toLowerCase() !== "tabletable" ) ), 
+			(elem) => elem.nodeName.toLowerCase() === "center"
+			)
+		return new IData(elems, this.timestamp);
+		}
+}
+
+class IData {
+	constructor(arr, timestamp){
+		if (arr.length === 0) throw new TypeError("No IData provided"); 
+		this.entries = arr.map(idata => (([_,d,m,y]) => Date.parse(m+"/"+d+"/"+y))(idata[0].match(/(\d+)\.(\d+)\.(\d+)/)))
+		.map((idata)=>[idata[0], new IData.Day(this, ...idata)])
+		this.timestamp = timestamp;
+	}
+}
+
+IData.Day = class Day {
+	constructor(head, date, table, extras=""){
+		this.head = head;
+		this.date = date;
+		this.table = table;
+		this.extrasstr = extras;
+		this.entries = [];
+		this.extras = [];
+		this.reloc = [];
+		this.parseTable();
+	}
+	parseTable(){
+		let table = Array.prototype.slice.call(this.table.querySelectorAll("tr"), 2)
+		.map(row => row.children.map(cell => cell.innerText))
+		for (i = 0; i < table.length; i++) table[i][0] == (table[i][0].length <= 2) ? table[i-1][0] : table[i][0];
+	}
+}
+
+
 (()=>{
 
 function ping() { this.send("pong!") }
-function supl() { this.send("Na hledači suplování se stále tvrdě pracuje.") }
+function idata() { this.send("Na hledači suplování se stále tvrdě pracuje.") }
 function help(message, [cmdname])
     {
         if (cmdname === undefined) return this.send("Pro zadání parametrů příkazů obsahující mezery ohraničte parametr uvozovkami: `" + prefix + "role přidat \"Velký okoun\"`\nDostupné příkazy:\n\n" + Object.values(Command._commands).map(cmd => cmd.name.padEnd(10)+cmd.description).join("\n")); 
@@ -75,7 +144,7 @@ selfrole._roles = {
 
      
 new Command("ping", ping, "Pošle zpět odezvu");
-new Command("supl", supl, "[WIP] Zobrazí personalizované suplování"
+new Command("supl", idata, "[WIP] Zobrazí personalizované suplování"
 );
 new Command("help", help, "Vypíše seznam všech dostupných příkazů, nebo vypíše nápovědu k zadanému příkazu.", "help *příkaz*",
  {"*příkaz*": "Jméno příkazu, k němuž se má zobrazit nápověda."});
