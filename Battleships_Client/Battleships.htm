@@ -6,10 +6,19 @@
 		<script src="game.js"></script>
 		
 		<style type="text/css">
-			#game_field row {display: block;}
-			#game_field cell {margin: 20px; width: 1px; height: 1px; display: inline-block;}
-			#game_field cell.ship_single, #game_field cell.ship_top, #game_field cell.ship_bottom, #game_field cell.ship_left, #game_field cell.ship_right { margin: 0px; background-color: black; border: 20px solid black; border-radius: 50%;}
-		
+			.game_field {display: inline-block; border: 1px solid black}
+			.game_field row {display: block;}
+			.game_field cell {margin: 20px; width: 1px; height: 1px; border: 0px solid black; display: inline-block; color: lightgrey}
+			.game_field cell.ship_single, #game_field cell.ship_bottom, #game_field cell.ship_left, #game_field cell.ship_right { margin: 0px; background-color: black; border: 20px solid black; border-radius: 50%;}
+			.game_field cell.ship_top {margin: 0px; background-color: black; border-width: 20px; border-radius: 50% 50% 0 0}
+			.game_field cell.ship_left {margin: 0px; background-color: black; border-width: 20px; border-radius: 50% 0 0 50%}
+			.game_field cell.ship_right {margin: 0px; background-color: black; border-width: 20px; border-radius: 0 50% 50% 0}
+			.game_field cell.ship_bottom {margin: 0px; background-color: black; border-width: 20px; border-radius: 0 0 50% 50%}
+			.game_field cell.ship_horizontal, .game_field cell.ship_vertical {margin: 0px; background-color: black; border-width: 20px;}
+			.game_field cell.hit {color: red}
+			.game_field cell.sunk {border-color: red; background-color: red; color: lightgrey}
+			
+			
 			sprites {display: none;}
 		</style>
 	</head>

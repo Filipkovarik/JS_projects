@@ -1,4 +1,4 @@
-var Game, GameInterface, GameSocket, Game1;
+var Game, Ship, GameInterface, GameSocket, Game1;
 
 jQuery(()=>{
 
@@ -18,8 +18,12 @@ GameSocket.$Messages = {MISS: 0, HIT: 1, SINK: 2, NOT_STARTED: 255}
 
 GameInterface = class GameInterface {
 	constructor (w,h) {
-		this.field = $(`<div id="game_field">` + (`<row>` + (`<cell></cell>`).repeat(w) + `</row>`).repeat(h));
-		this.field.appendTo(document.body)
+		this.field = $(`<div class="game_field" id="game_field_1">` + (`<row>` + (`<cell></cell>`).repeat(w) + `</row>`).repeat(h));
+		this.field.children().toArray().forEach((row, y) => [].forEach.call(row.children, (cell, x) => {cell.innerText = "ABCDEFGHIJKLMNOPQRSTUVXYZ"[x] + y; $(cell).attr("x", x).attr("y", y);}));
+		this.field.appendTo(document.body);
+		this.field_opponent = $(`<div class="game_field" id="game_field_2">` + (`<row>` + (`<cell></cell>`).repeat(w) + `</row>`).repeat(h));
+		this.field_opponent.children().toArray().forEach((row, y) => [].forEach.call(row.children, (cell, x) => {cell.innerText = "ABCDEFGHIJKLMNOPQRSTUVXYZ"[x] + y; $(cell).attr("x", x).attr("y", y);}));
+		this.field_opponent.appendTo(document.body);
 	}
 	
 	clearField() {
@@ -27,7 +31,7 @@ GameInterface = class GameInterface {
 	}
 	
 	drawShip(ship){
-		let fields = ship.fieldsOccupied.map( ([x,y])=> this.field.find(":eq("+y+")").find(":eq("+x+")") );
+		let fields = ship.getFieldsOccupied().map( ([x,y])=> this.field.find("row:eq("+y+")").find("cell:eq("+x+")") );
 		if (fields.length == 1) { fields[0].addClass("ship_single"); return; }
 		let first = fields.shift();
 		let last = fields.pop();
@@ -45,45 +49,69 @@ Game = class Game {
 		this.gameInterface = new GameInterface(w,h);
 		this.ships_unplaced = fleet.map(size => new Ship(size))
 		this.ships_placed = [];
+		this.current_ship;
 		this.field = new Array(h).fill().map(_ => new Array(w).fill())
+		this.ready = false;
 	}
 	
-	drawShips(ship){
+	start () {
+		this.ready = true;
+	}
+	
+	drawShips(){
 		this.ships_placed.forEach(x => this.gameInterface.drawShip(x));
-		if (ship !== undefined) this.gameInterface.drawShip(ship);
+		if (this.current_ship instanceof Ship) this.gameInterface.drawShip(this.current_ship);
+	}
+	
+	checkConflict() {
+		if(this.current_ship === null) return true;
+		let placements = {};
+		let k = ([x,y])=>y*this.width+x;
+		this.ships_placed.forEach(placed => placed.getFieldsOccupied().map(f => k(f)).forEach(p => {placements[p] = true}))
+		return this.current_ship.getFieldsOccupied().every(f => placements[k(f)] != true);
+		
 	}
 	
 	placeShip() {
 		if (this.ships_unplaced.length == 0) return false;
-		let current_ship = this.ships_unplaced.shift();
+		this.current_ship = this.ships_unplaced.shift();
+		this.drawShips(this.current_ship);
 		
-		document.addEventListener("keypress", 
+		if(this.ships_placed.length == 0) document.addEventListener("keypress", 
 			e =>
 			{	
+				if (this.ships_unplaced.length == 0 && this.current_ship == null) return false;
 				this.gameInterface.clearField()
 				switch(e.key) {
-					case "ArrowRight": current_ship.x + 1 < this.width && current_ship.x++; break;
-					case "ArrowLeft": current_ship.x - 1 >= 0 && current_ship.x--; break;
-					case "ArrowDown": current_ship.y + 1 < this.height && current_ship.y++; break;
-					case "ArrowUp": current_ship.y - 1 >= 0 && current_ship.y--; break;
-					case "Space": current_ship.orientation = current_ship.orientation[0] ? Ship.$Orientation.VERTICAL : Ship.$Orientation.HORIZONTAL 
-					case "Enter": this.placeShip() || this.start(); break;
+					case "ArrowRight": this.current_ship.x + 1 < this.width && this.current_ship.x++; break;
+					case "ArrowLeft": this.current_ship.x - 1 >= 0 && this.current_ship.x--; break;
+					case "ArrowDown": this.current_ship.y + 1 < this.height && this.current_ship.y++; break;
+					case "ArrowUp": this.current_ship.y - 1 >= 0 && this.current_ship.y--; break;
+					case "t": this.current_ship.orientation = (this.current_ship.orientation == Ship.$Orientation.VERTICAL) ? Ship.$Orientation.HORIZONTAL : Ship.$Orientation.VERTICAL; break;
+					case " ": 
+						if (this.checkConflict()) {
+						this.ships_placed.push(this.current_ship);
+						this.placeShip() || ( this.current_ship = null || this.start() );} break;
 				}
 				
-				this.drawShips(current_ship);
+				this.drawShips();
 				
 			}
 		
-		)
+		);
 		return true;
 	}
 	
 	
 	
-	fire() {}
+	fire(x, y) {
+		//if (!this.ready) return false;
+		console.log(x,y)
+		this.gameInterface.field_opponent.find("cell[x="+x+"][y="+y+"]").addClass("hit")
+	}
 }
 
-class Ship {
+Ship = class Ship {
 	constructor (size) {
 		this.x = 0;
 		this.y = 0;
@@ -92,7 +120,7 @@ class Ship {
 		this.alive = true;
 	}
 	
-	get fieldsOccupied() {
+	getFieldsOccupied() {
 		let f = [];
 		for (let i = 0; i < this.size; i++) {
 			let newx = this.x + i*this.orientation.x;
@@ -105,8 +133,14 @@ class Ship {
 	
 }
 
+
+
 Ship.$Orientation = {HORIZONTAL: {x: 1, y: 0}, VERTICAL: {x: 0, y: 1} }
 
 Game1 = new Game(10, 10);
+
+Game1.placeShip();
+
+$("#game_field_2 cell").click(e => Game1.fire(parseInt($(e.target).attr("x")),parseInt($(e.target).attr("y"))))
 
 });
