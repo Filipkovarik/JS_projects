@@ -5,16 +5,38 @@ jQuery(()=>{
 const fleet = [1,5,4,3,2,2,1,1];
 
 GameSocket = class GameSocket {
-	constructor (player){
-		
+	constructor (game){
+		this.game = game;
+		this.my_turn = undefined;
 	}
 	
 	send (message) {
 		
 	}
+	
+	receive (message) {
+		if (",".indexOf(message)) { message = message.split(",").map(x=>parseInt(x)); return this.receiveHit(...message) }
+		message = parseInt(message);
+		if (message === GameSocket.$Messages.MISS) return this.game.missCallback(...this.game.lastFire);
+		if (message === GameSocket.$Messages.HIT) return this.game.hitCallback(...this.game.lastFire);
+		if (message === GameSocket.$Messages.SINK) return this.game.sinkCallback(...this.game.lastFire);
+		if (message === GameSocket.$Messages.SINK_FINAL) return this.game.sinkFinalCallback(...this.game.lastFire);
+	}
+
+	sendHit(x, y){
+		if (this.my_turn == false) return false;
+		this.send("x,y");
+		this.my_turn = false;
+	}
+	
+	receiveHit(x, y){
+		if (!this.game.ready) return this.send(GameSocket.$Messages.NOT_STARTED);
+		if (this.my_turn) return this.send(GameSocket.$Messages.NOT_YOUR_TURN);
+		
+	}
 }
 
-GameSocket.$Messages = {MISS: 0, HIT: 1, SINK: 2, NOT_STARTED: 255}
+GameSocket.$Messages = {MISS: 0, HIT: 1, SINK: 2, SINK_FINAL: 3, NOT_YOUR_TURN: 254, NOT_STARTED: 255}
 
 GameInterface = class GameInterface {
 	constructor (w,h) {
@@ -47,6 +69,7 @@ Game = class Game {
 		this.width = w;
 		this.height = h;
 		this.gameInterface = new GameInterface(w,h);
+		this.gameSocket = new GameSocket(this);
 		this.ships_unplaced = fleet.map(size => new Ship(size))
 		this.ships_placed = [];
 		this.current_ship;
@@ -107,7 +130,59 @@ Game = class Game {
 	fire(x, y) {
 		//if (!this.ready) return false;
 		console.log(x,y)
+		this.gameSocket.sendHit(x, y)
+		this.lastFire = [x, y]
+	}
+	
+	missCallback(x, y){
+		this.gameInterface.field_opponent.find("cell[x="+x+"][y="+y+"]").addClass("miss")
+	}
+	
+	hitCallback(x, y){
 		this.gameInterface.field_opponent.find("cell[x="+x+"][y="+y+"]").addClass("hit")
+	}
+	
+	sinkCallback(x, y){
+		this.gameInterface.field_opponent.find("cell[x="+x+"][y="+y+"]").addClass("sunk")
+	}
+	
+	sinkFinalCallback(x, y){
+		this.sinkCallback(x, y);
+		this.endGame(true);
+	}
+	
+	hit(x, y){
+		for (ship of this.ships_placed){
+			fields = ship.getFieldsOccupied();
+			for (f = 0; f < fields.length; f++){
+				if (fields[f][0] == x && fields[f][1] == y){
+					ship.fieldsHit[f] = true;
+					if(!this.getAliveStatus()) {
+						setTimeout(x=>this.endGame(false),0);
+						return GameSocket.$Messages.SINK_FINAL;
+					}
+					return GameSocket.$Messages[ship.isAlive() ? "HIT" : "SINK"]
+				}
+			}
+		}
+		return GameSocket.$Messages.MISS;
+	}
+	
+	endGame(won) {
+		alert("Game " + won ? "won" : "lost");
+		this.ready = false;
+		this.restart();
+	}
+	
+	restartGame(){
+		this.ships_unplaced = this.ships_placed;
+		this.ships_placed = [];
+		this.drawShips();
+		this.placeShip();
+	}
+	
+	getAliveStatus(){
+		return this.ships_placed.some(x => x.isAlive());
 	}
 }
 
@@ -117,7 +192,7 @@ Ship = class Ship {
 		this.y = 0;
 		this.orientation = Ship.$Orientation.HORIZONTAL;
 		this.size = size;
-		this.alive = true;
+		this.fieldsHit = Array(size).fill(false);
 	}
 	
 	getFieldsOccupied() {
@@ -130,7 +205,9 @@ Ship = class Ship {
 		return f;
 	}
 	
-	
+	isAlive(){
+		return this.fieldsHit.some(x=> x==False)
+	}
 }
 
 
