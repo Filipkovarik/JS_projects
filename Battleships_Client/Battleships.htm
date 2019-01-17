@@ -27,6 +27,13 @@
 		</style>
 	</head>
 	<body>
-		
+		<game></game>
+		<br>
+		<form action="#">
+		<input type="text" id="receive_sim">
+		<input type="submit" value="Simulate message received" onclick="Game1.gameSocket.receive($('#receive_sim').val())">
+		<br>
+		<span id="message_sent"></span>
+		</form>
 	</body>
 </html>

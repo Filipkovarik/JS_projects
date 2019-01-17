@@ -1,4 +1,5 @@
 var Game, Ship, GameInterface, GameSocket, Game1;
+const _port = 8471
 
 jQuery(()=>{
 
@@ -6,12 +7,17 @@ const fleet = [1,5,4,3,2,2,1,1];
 
 GameSocket = class GameSocket {
 	constructor (game){
+		this.socket = new WebSocket("ws://"+prompt("Enter WS IP:","")+":"+_port);
+		this.socket.addEventListener("message", ({data})=>this.receive(data));
+		this.socket.addEventListener("error", x=>console.log("Socket Error:", x));
+		this.socket.addEventListener("close", x=>console.log("Socket Close:", x));
 		this.game = game;
-		this.my_turn = undefined;
+		this.my_turn = undefined;		
 	}
 	
 	send (message) {
-		
+		$("#message_sent").text("Sending: \"" + message + "\" ["+(new Date().toISOString())+"]")
+		this.socket.send(message)
 	}
 	
 	receive (message) {
@@ -24,28 +30,31 @@ GameSocket = class GameSocket {
 	}
 
 	sendHit(x, y){
-		if (this.my_turn == false) return false;
-		this.send("x,y");
+		if (!this.my_turn) return false;
+		this.send(x+","+y);
 		this.my_turn = false;
 	}
 	
 	receiveHit(x, y){
 		if (!this.game.ready) return this.send(GameSocket.$Messages.NOT_STARTED);
 		if (this.my_turn) return this.send(GameSocket.$Messages.NOT_YOUR_TURN);
-		
+		this.send(this.game.hit(x, y));
+		this.my_turn = false;
 	}
 }
 
 GameSocket.$Messages = {MISS: 0, HIT: 1, SINK: 2, SINK_FINAL: 3, NOT_YOUR_TURN: 254, NOT_STARTED: 255}
 
 GameInterface = class GameInterface {
-	constructor (w,h) {
+	constructor (game,w,h) {
+		this.game = game;
 		this.field = $(`<div class="game_field" id="game_field_1">` + (`<row>` + (`<cell></cell>`).repeat(w) + `</row>`).repeat(h));
 		this.field.children().toArray().forEach((row, y) => [].forEach.call(row.children, (cell, x) => {cell.innerText = "ABCDEFGHIJKLMNOPQRSTUVXYZ"[x] + y; $(cell).attr("x", x).attr("y", y);}));
-		this.field.appendTo(document.body);
+		this.field.appendTo($("game"));
 		this.field_opponent = $(`<div class="game_field" id="game_field_2">` + (`<row>` + (`<cell></cell>`).repeat(w) + `</row>`).repeat(h));
 		this.field_opponent.children().toArray().forEach((row, y) => [].forEach.call(row.children, (cell, x) => {cell.innerText = "ABCDEFGHIJKLMNOPQRSTUVXYZ"[x] + y; $(cell).attr("x", x).attr("y", y);}));
-		this.field_opponent.appendTo(document.body);
+		this.field_opponent.find("cell").on("click", e=>{(t=>this.game.fire(t.attr("x"),t.attr("y")))($(e.target))})
+		this.field_opponent.appendTo($("game"));
 	}
 	
 	clearField() {
@@ -54,6 +63,16 @@ GameInterface = class GameInterface {
 	
 	drawShip(ship){
 		let fields = ship.getFieldsOccupied().map( ([x,y])=> this.field.find("row:eq("+y+")").find("cell:eq("+x+")") );
+		if (ship.isAlive()) {
+			for (let i = 0; i < ship.size; i++) {
+				if(ship.fieldsHit[i]) fields[i].addClass("hit");
+			}
+		}
+		else {
+			for (let i = 0; i < ship.size; i++) {
+				fields[i].addClass("sunk");
+			}
+		}
 		if (fields.length == 1) { fields[0].addClass("ship_single"); return; }
 		let first = fields.shift();
 		let last = fields.pop();
@@ -68,7 +87,7 @@ Game = class Game {
 	constructor(w,h) {
 		this.width = w;
 		this.height = h;
-		this.gameInterface = new GameInterface(w,h);
+		this.gameInterface = new GameInterface(this,w,h);
 		this.gameSocket = new GameSocket(this);
 		this.ships_unplaced = fleet.map(size => new Ship(size))
 		this.ships_placed = [];
@@ -128,10 +147,10 @@ Game = class Game {
 	
 	
 	fire(x, y) {
-		//if (!this.ready) return false;
-		console.log(x,y)
-		this.gameSocket.sendHit(x, y)
-		this.lastFire = [x, y]
+		if (!this.ready) return false;
+		console.log(x,y);
+		this.gameSocket.sendHit(x, y);
+		this.lastFire = [x, y];
 	}
 	
 	missCallback(x, y){
@@ -151,15 +170,20 @@ Game = class Game {
 		this.endGame(true);
 	}
 	
-	hit(x, y){
-		for (ship of this.ships_placed){
-			fields = ship.getFieldsOccupied();
-			for (f = 0; f < fields.length; f++){
+	hit(x, y){ //or miss, I guess they never miss, huh, you got a 
+		for (let ship of this.ships_placed){
+			let fields = ship.getFieldsOccupied();
+			for (let f = 0; f < fields.length; f++){
 				if (fields[f][0] == x && fields[f][1] == y){
 					ship.fieldsHit[f] = true;
+					this.gameInterface.drawShip(ship);
 					if(!this.getAliveStatus()) {
+						this.gameInterface.field.find("cell").not((i,e)=>e[0].class=="").not(".miss").addClass("sunk");
 						setTimeout(x=>this.endGame(false),0);
 						return GameSocket.$Messages.SINK_FINAL;
+					}
+					if (ship.isAlive()) {
+						
 					}
 					return GameSocket.$Messages[ship.isAlive() ? "HIT" : "SINK"]
 				}
@@ -206,7 +230,7 @@ Ship = class Ship {
 	}
 	
 	isAlive(){
-		return this.fieldsHit.some(x=> x==False)
+		return this.fieldsHit.some(x=>x==false)
 	}
 }
 
